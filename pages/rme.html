@@ -1042,8 +1042,6 @@
         </div>
 
 
-        <!-- DAFTAR TEMUAN -->
-
         <div style="
           margin-top:18px;
           overflow-x:auto;
@@ -1088,6 +1086,241 @@
 
 
       <!-- =================================================
+           DIAGNOSIS
+      ================================================== -->
+
+      <div
+        id="diagnosisArea"
+        style="
+          margin-top:24px;
+          padding:18px;
+          border:1px solid #e5e7eb;
+          border-radius:10px;
+          background:#ffffff;
+        "
+      >
+
+        <h3>Diagnosis</h3>
+
+        <p class="muted">
+          Catat diagnosis klinis yang ditetapkan selama Encounter.
+          Satu Encounter dapat memiliki beberapa diagnosis.
+        </p>
+
+
+        <form id="diagnosisForm">
+
+          <div style="
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+            gap:12px;
+            margin-bottom:16px;
+          ">
+
+            <div>
+
+              <label for="diagnosedAt">
+                <strong>Waktu Diagnosis</strong>
+              </label>
+
+              <input
+                id="diagnosedAt"
+                type="datetime-local"
+              >
+
+            </div>
+
+
+            <div>
+
+              <label for="diagnosisType">
+                <strong>Tipe Diagnosis</strong>
+              </label>
+
+              <select
+                id="diagnosisType"
+                required
+              >
+
+                <option value="">
+                  Pilih tipe diagnosis
+                </option>
+
+                <option value="WORKING">
+                  Diagnosis Kerja
+                </option>
+
+                <option value="PRIMARY">
+                  Diagnosis Utama
+                </option>
+
+                <option value="SECONDARY">
+                  Diagnosis Sekunder
+                </option>
+
+                <option value="FINAL">
+                  Diagnosis Final
+                </option>
+
+              </select>
+
+            </div>
+
+          </div>
+
+
+          <div style="
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+            gap:12px;
+            margin-bottom:16px;
+          ">
+
+            <div>
+
+              <label for="diagnosisCode">
+                <strong>Kode Diagnosis</strong>
+              </label>
+
+              <input
+                id="diagnosisCode"
+                type="text"
+                maxlength="100"
+                placeholder="Contoh: J06.9"
+              >
+
+              <small class="muted">
+                Opsional. Dapat diisi dengan kode diagnosis
+                yang digunakan fasilitas.
+              </small>
+
+            </div>
+
+
+            <div>
+
+              <label for="diagnosisName">
+                <strong>Nama Diagnosis</strong>
+              </label>
+
+              <input
+                id="diagnosisName"
+                type="text"
+                maxlength="255"
+                placeholder="Contoh: Infeksi saluran pernapasan akut"
+                required
+              >
+
+            </div>
+
+          </div>
+
+
+          <div style="margin-bottom:16px">
+
+            <label for="diagnosisNotes">
+              <strong>Catatan Diagnosis</strong>
+            </label>
+
+            <textarea
+              id="diagnosisNotes"
+              rows="4"
+              placeholder="Catatan klinis terkait diagnosis..."
+            ></textarea>
+
+          </div>
+
+
+          <div style="
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+          ">
+
+            <button
+              id="saveDiagnosisBtn"
+              type="submit"
+            >
+              Tambah Diagnosis
+            </button>
+
+
+            <button
+              id="cancelDiagnosisEditBtn"
+              type="button"
+              style="display:none"
+            >
+              Batal Ubah
+            </button>
+
+
+            <button
+              id="reloadDiagnosisBtn"
+              type="button"
+            >
+              Muat Ulang
+            </button>
+
+          </div>
+
+        </form>
+
+
+        <div
+          id="diagnosisInfo"
+          class="muted"
+          style="margin-top:14px"
+        >
+          Belum ada diagnosis tersimpan.
+        </div>
+
+
+        <!-- DAFTAR DIAGNOSIS -->
+
+        <div style="
+          margin-top:18px;
+          overflow-x:auto;
+        ">
+
+          <table style="width:100%">
+
+            <thead>
+
+              <tr>
+                <th>Waktu</th>
+                <th>Tipe</th>
+                <th>Kode</th>
+                <th>Diagnosis</th>
+                <th>Catatan</th>
+                <th>Diperbarui</th>
+                <th>Aksi</th>
+              </tr>
+
+            </thead>
+
+            <tbody id="diagnosisTable">
+
+              <tr>
+
+                <td
+                  colspan="7"
+                  class="muted"
+                >
+                  Belum ada diagnosis tersimpan.
+                </td>
+
+              </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+
+      <!-- =================================================
            KOMPONEN RME BERIKUTNYA
       ================================================== -->
 
@@ -1111,10 +1344,6 @@
           grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
           gap:10px;
         ">
-
-          <div class="card">
-            Diagnosis
-          </div>
 
           <div class="card">
             Tindakan
