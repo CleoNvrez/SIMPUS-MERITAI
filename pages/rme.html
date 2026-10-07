@@ -479,8 +479,6 @@
 
         <form id="vitalForm">
 
-          <!-- WAKTU PENGUKURAN -->
-
           <div style="margin-bottom:16px">
 
             <label for="measuredAt">
@@ -494,8 +492,6 @@
 
           </div>
 
-
-          <!-- TEKANAN DARAH -->
 
           <div style="
             display:grid;
@@ -539,8 +535,6 @@
 
           </div>
 
-
-          <!-- NADI / NAPAS / SUHU / SPO2 -->
 
           <div style="
             display:grid;
@@ -619,8 +613,6 @@
 
           </div>
 
-
-          <!-- ANTROPOMETRI -->
 
           <h4>Antropometri</h4>
 
@@ -701,8 +693,6 @@
           </div>
 
 
-          <!-- IMT -->
-
           <div
             style="
               margin-bottom:16px;
@@ -725,8 +715,6 @@
 
           </div>
 
-
-          <!-- KESADARAN -->
 
           <div style="margin-bottom:16px">
 
@@ -769,8 +757,6 @@
           </div>
 
 
-          <!-- CATATAN -->
-
           <div style="margin-bottom:16px">
 
             <label for="vitalAdditionalNotes">
@@ -785,8 +771,6 @@
 
           </div>
 
-
-          <!-- ACTION -->
 
           <div style="
             display:flex;
@@ -826,6 +810,284 @@
 
 
       <!-- =================================================
+           PEMERIKSAAN FISIK
+      ================================================== -->
+
+      <div
+        id="physicalExamArea"
+        style="
+          margin-top:24px;
+          padding:18px;
+          border:1px solid #e5e7eb;
+          border-radius:10px;
+          background:#ffffff;
+        "
+      >
+
+        <h3>Pemeriksaan Fisik</h3>
+
+        <p class="muted">
+          Catat temuan objektif pemeriksaan fisik pasien.
+          Satu Encounter dapat memiliki beberapa temuan pemeriksaan.
+        </p>
+
+
+        <form id="physicalExamForm">
+
+          <div style="margin-bottom:16px">
+
+            <label for="examinedAt">
+              <strong>Waktu Pemeriksaan</strong>
+            </label>
+
+            <input
+              id="examinedAt"
+              type="datetime-local"
+            >
+
+          </div>
+
+
+          <div style="
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+            gap:12px;
+            margin-bottom:16px;
+          ">
+
+            <div>
+
+              <label for="bodySystem">
+                <strong>Sistem Tubuh</strong>
+              </label>
+
+              <select id="bodySystem">
+
+                <option value="">
+                  Pilih sistem tubuh
+                </option>
+
+                <option value="GENERAL">
+                  Umum
+                </option>
+
+                <option value="HEAD_NECK">
+                  Kepala & Leher
+                </option>
+
+                <option value="EYE">
+                  Mata
+                </option>
+
+                <option value="ENT">
+                  THT
+                </option>
+
+                <option value="RESPIRATORY">
+                  Respirasi
+                </option>
+
+                <option value="CARDIOVASCULAR">
+                  Kardiovaskular
+                </option>
+
+                <option value="ABDOMEN">
+                  Abdomen
+                </option>
+
+                <option value="GENITOURINARY">
+                  Genitourinaria
+                </option>
+
+                <option value="MUSCULOSKELETAL">
+                  Muskuloskeletal
+                </option>
+
+                <option value="NEUROLOGICAL">
+                  Neurologis
+                </option>
+
+                <option value="SKIN">
+                  Kulit
+                </option>
+
+                <option value="EXTREMITIES">
+                  Ekstremitas
+                </option>
+
+                <option value="OTHER">
+                  Lainnya
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <div>
+
+              <label for="bodyRegion">
+                <strong>Lokasi / Region Tubuh</strong>
+              </label>
+
+              <input
+                id="bodyRegion"
+                type="text"
+                maxlength="200"
+                placeholder="Contoh: Thoraks kanan"
+              >
+
+            </div>
+
+
+            <div>
+
+              <label for="normalAbnormal">
+                <strong>Status Temuan</strong>
+              </label>
+
+              <select id="normalAbnormal">
+
+                <option value="">
+                  Belum ditentukan
+                </option>
+
+                <option value="NORMAL">
+                  Normal
+                </option>
+
+                <option value="ABNORMAL">
+                  Abnormal
+                </option>
+
+              </select>
+
+            </div>
+
+          </div>
+
+
+          <div style="margin-bottom:16px">
+
+            <label for="physicalFinding">
+              <strong>Temuan Pemeriksaan</strong>
+            </label>
+
+            <textarea
+              id="physicalFinding"
+              rows="5"
+              placeholder="Tuliskan hasil pemeriksaan fisik secara objektif..."
+              required
+            ></textarea>
+
+          </div>
+
+
+          <div style="margin-bottom:16px">
+
+            <label for="physicalAdditionalNotes">
+              <strong>Catatan Tambahan</strong>
+            </label>
+
+            <textarea
+              id="physicalAdditionalNotes"
+              rows="4"
+              placeholder="Catatan tambahan pemeriksaan fisik..."
+            ></textarea>
+
+          </div>
+
+
+          <div style="
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+          ">
+
+            <button
+              id="savePhysicalExamBtn"
+              type="submit"
+            >
+              Tambah Temuan
+            </button>
+
+
+            <button
+              id="cancelPhysicalExamEditBtn"
+              type="button"
+              style="display:none"
+            >
+              Batal Ubah
+            </button>
+
+
+            <button
+              id="reloadPhysicalExamBtn"
+              type="button"
+            >
+              Muat Ulang
+            </button>
+
+          </div>
+
+        </form>
+
+
+        <div
+          id="physicalExamInfo"
+          class="muted"
+          style="margin-top:14px"
+        >
+          Belum ada pemeriksaan fisik tersimpan.
+        </div>
+
+
+        <!-- DAFTAR TEMUAN -->
+
+        <div style="
+          margin-top:18px;
+          overflow-x:auto;
+        ">
+
+          <table style="width:100%">
+
+            <thead>
+
+              <tr>
+                <th>Waktu</th>
+                <th>Sistem</th>
+                <th>Region</th>
+                <th>Status</th>
+                <th>Temuan</th>
+                <th>Catatan</th>
+                <th>Aksi</th>
+              </tr>
+
+            </thead>
+
+            <tbody id="physicalExamTable">
+
+              <tr>
+
+                <td
+                  colspan="7"
+                  class="muted"
+                >
+                  Belum ada temuan pemeriksaan fisik.
+                </td>
+
+              </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+
+      <!-- =================================================
            KOMPONEN RME BERIKUTNYA
       ================================================== -->
 
@@ -849,10 +1111,6 @@
           grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
           gap:10px;
         ">
-
-          <div class="card">
-            Pemeriksaan Fisik
-          </div>
 
           <div class="card">
             Diagnosis
