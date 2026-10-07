@@ -1275,8 +1275,6 @@
         </div>
 
 
-        <!-- DAFTAR DIAGNOSIS -->
-
         <div style="
           margin-top:18px;
           overflow-x:auto;
@@ -1321,39 +1319,211 @@
 
 
       <!-- =================================================
-           KOMPONEN RME BERIKUTNYA
+           TINDAKAN
       ================================================== -->
 
       <div
-        id="clinicalArea"
+        id="actionArea"
         style="
           margin-top:24px;
-          padding:16px;
+          padding:18px;
+          border:1px solid #e5e7eb;
+          border-radius:10px;
+          background:#ffffff;
+        "
+      >
+
+        <h3>Tindakan</h3>
+
+        <p class="muted">
+          Catat tindakan pelayanan yang dilakukan selama Encounter.
+          Satu Encounter dapat memiliki beberapa tindakan.
+        </p>
+
+
+        <form id="actionForm">
+
+          <div style="
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+            gap:12px;
+            margin-bottom:16px;
+          ">
+
+            <div>
+
+              <label for="performedAt">
+                <strong>Waktu Tindakan</strong>
+              </label>
+
+              <input
+                id="performedAt"
+                type="datetime-local"
+              >
+
+            </div>
+
+
+            <div>
+
+              <label for="actionCode">
+                <strong>Kode Tindakan</strong>
+              </label>
+
+              <input
+                id="actionCode"
+                type="text"
+                maxlength="100"
+                placeholder="Contoh: TIND-001"
+              >
+
+              <small class="muted">
+                Opsional. Isi dengan kode tindakan yang digunakan fasilitas.
+              </small>
+
+            </div>
+
+          </div>
+
+
+          <div style="margin-bottom:16px">
+
+            <label for="actionName">
+              <strong>Nama Tindakan</strong>
+            </label>
+
+            <input
+              id="actionName"
+              type="text"
+              maxlength="255"
+              placeholder="Contoh: Pemeriksaan tekanan darah"
+              required
+            >
+
+          </div>
+
+
+          <div style="margin-bottom:16px">
+
+            <label for="actionNotes">
+              <strong>Catatan Tindakan</strong>
+            </label>
+
+            <textarea
+              id="actionNotes"
+              rows="4"
+              placeholder="Catatan mengenai tindakan yang dilakukan..."
+            ></textarea>
+
+          </div>
+
+
+          <div style="
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+          ">
+
+            <button
+              id="saveActionBtn"
+              type="submit"
+            >
+              Tambah Tindakan
+            </button>
+
+
+            <button
+              id="cancelActionEditBtn"
+              type="button"
+              style="display:none"
+            >
+              Batal Ubah
+            </button>
+
+
+            <button
+              id="reloadActionBtn"
+              type="button"
+            >
+              Muat Ulang
+            </button>
+
+          </div>
+
+        </form>
+
+
+        <div
+          id="actionInfo"
+          class="muted"
+          style="margin-top:14px"
+        >
+          Belum ada tindakan tersimpan.
+        </div>
+
+
+        <div style="
+          margin-top:18px;
+          overflow-x:auto;
+        ">
+
+          <table style="width:100%">
+
+            <thead>
+
+              <tr>
+                <th>Waktu</th>
+                <th>Kode</th>
+                <th>Tindakan</th>
+                <th>Catatan</th>
+                <th>Diperbarui</th>
+                <th>Aksi</th>
+              </tr>
+
+            </thead>
+
+            <tbody id="actionTable">
+
+              <tr>
+
+                <td
+                  colspan="6"
+                  class="muted"
+                >
+                  Belum ada tindakan tersimpan.
+                </td>
+
+              </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+
+      <!-- =================================================
+           RUJUKAN
+      ================================================== -->
+
+      <div
+        id="referralArea"
+        style="
+          margin-top:24px;
+          padding:18px;
           border:1px solid #e5e7eb;
           border-radius:10px;
           background:#f8fafc;
         "
       >
 
-        <h4>
-          Komponen Rekam Medis Berikutnya
-        </h4>
+        <h3>Rujukan</h3>
 
-        <div style="
-          display:grid;
-          grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
-          gap:10px;
-        ">
-
-          <div class="card">
-            Tindakan
-          </div>
-
-          <div class="card">
-            Rujukan
-          </div>
-
-        </div>
+        <p class="muted">
+          Komponen Rujukan akan dikembangkan pada tahap berikutnya.
+        </p>
 
       </div>
 
