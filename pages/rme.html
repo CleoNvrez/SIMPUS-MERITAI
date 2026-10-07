@@ -282,8 +282,6 @@
 
         <form id="anamnesisForm">
 
-          <!-- KELUHAN UTAMA -->
-
           <div style="margin-bottom:16px">
 
             <label for="chiefComplaint">
@@ -298,8 +296,6 @@
 
           </div>
 
-
-          <!-- RIWAYAT PENYAKIT SEKARANG -->
 
           <div style="margin-bottom:16px">
 
@@ -316,8 +312,6 @@
           </div>
 
 
-          <!-- RIWAYAT PENYAKIT DAHULU -->
-
           <div style="margin-bottom:16px">
 
             <label for="pastMedicalHistory">
@@ -332,8 +326,6 @@
 
           </div>
 
-
-          <!-- RIWAYAT KELUARGA -->
 
           <div style="margin-bottom:16px">
 
@@ -350,8 +342,6 @@
           </div>
 
 
-          <!-- ALERGI -->
-
           <div style="margin-bottom:16px">
 
             <label for="allergyHistory">
@@ -366,8 +356,6 @@
 
           </div>
 
-
-          <!-- RIWAYAT OBAT -->
 
           <div style="margin-bottom:16px">
 
@@ -384,8 +372,6 @@
           </div>
 
 
-          <!-- RIWAYAT SOSIAL -->
-
           <div style="margin-bottom:16px">
 
             <label for="socialHistory">
@@ -400,8 +386,6 @@
 
           </div>
 
-
-          <!-- FAKTOR RISIKO -->
 
           <div style="margin-bottom:16px">
 
@@ -418,8 +402,6 @@
           </div>
 
 
-          <!-- CATATAN TAMBAHAN -->
-
           <div style="margin-bottom:16px">
 
             <label for="additionalNotes">
@@ -434,8 +416,6 @@
 
           </div>
 
-
-          <!-- ACTION -->
 
           <div style="
             display:flex;
@@ -475,6 +455,377 @@
 
 
       <!-- =================================================
+           VITAL SIGN
+      ================================================== -->
+
+      <div
+        id="vitalArea"
+        style="
+          margin-top:24px;
+          padding:18px;
+          border:1px solid #e5e7eb;
+          border-radius:10px;
+          background:#ffffff;
+        "
+      >
+
+        <h3>Vital Sign</h3>
+
+        <p class="muted">
+          Catat tanda vital dan pengukuran antropometri pasien
+          selama pelayanan.
+        </p>
+
+
+        <form id="vitalForm">
+
+          <!-- WAKTU PENGUKURAN -->
+
+          <div style="margin-bottom:16px">
+
+            <label for="measuredAt">
+              <strong>Waktu Pengukuran</strong>
+            </label>
+
+            <input
+              id="measuredAt"
+              type="datetime-local"
+            >
+
+          </div>
+
+
+          <!-- TEKANAN DARAH -->
+
+          <div style="
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+            gap:12px;
+            margin-bottom:16px;
+          ">
+
+            <div>
+
+              <label for="systolicBp">
+                <strong>Sistolik (mmHg)</strong>
+              </label>
+
+              <input
+                id="systolicBp"
+                type="number"
+                min="0"
+                step="1"
+                placeholder="Contoh: 120"
+              >
+
+            </div>
+
+
+            <div>
+
+              <label for="diastolicBp">
+                <strong>Diastolik (mmHg)</strong>
+              </label>
+
+              <input
+                id="diastolicBp"
+                type="number"
+                min="0"
+                step="1"
+                placeholder="Contoh: 80"
+              >
+
+            </div>
+
+          </div>
+
+
+          <!-- NADI / NAPAS / SUHU / SPO2 -->
+
+          <div style="
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+            gap:12px;
+            margin-bottom:16px;
+          ">
+
+            <div>
+
+              <label for="pulseRate">
+                <strong>Nadi (x/menit)</strong>
+              </label>
+
+              <input
+                id="pulseRate"
+                type="number"
+                min="0"
+                step="1"
+                placeholder="Contoh: 80"
+              >
+
+            </div>
+
+
+            <div>
+
+              <label for="respiratoryRate">
+                <strong>Frekuensi Napas (x/menit)</strong>
+              </label>
+
+              <input
+                id="respiratoryRate"
+                type="number"
+                min="0"
+                step="1"
+                placeholder="Contoh: 20"
+              >
+
+            </div>
+
+
+            <div>
+
+              <label for="temperatureC">
+                <strong>Suhu (°C)</strong>
+              </label>
+
+              <input
+                id="temperatureC"
+                type="number"
+                min="0"
+                step="0.1"
+                placeholder="Contoh: 36.7"
+              >
+
+            </div>
+
+
+            <div>
+
+              <label for="oxygenSaturation">
+                <strong>SpO₂ (%)</strong>
+              </label>
+
+              <input
+                id="oxygenSaturation"
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+                placeholder="Contoh: 98"
+              >
+
+            </div>
+
+          </div>
+
+
+          <!-- ANTROPOMETRI -->
+
+          <h4>Antropometri</h4>
+
+          <div style="
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+            gap:12px;
+            margin-bottom:16px;
+          ">
+
+            <div>
+
+              <label for="weightKg">
+                <strong>Berat Badan (kg)</strong>
+              </label>
+
+              <input
+                id="weightKg"
+                type="number"
+                min="0"
+                step="0.1"
+                placeholder="Contoh: 60"
+              >
+
+            </div>
+
+
+            <div>
+
+              <label for="heightCm">
+                <strong>Tinggi Badan (cm)</strong>
+              </label>
+
+              <input
+                id="heightCm"
+                type="number"
+                min="0"
+                step="0.1"
+                placeholder="Contoh: 165"
+              >
+
+            </div>
+
+
+            <div>
+
+              <label for="headCircumferenceCm">
+                <strong>Lingkar Kepala (cm)</strong>
+              </label>
+
+              <input
+                id="headCircumferenceCm"
+                type="number"
+                min="0"
+                step="0.1"
+                placeholder="Opsional"
+              >
+
+            </div>
+
+
+            <div>
+
+              <label for="midUpperArmCircumferenceCm">
+                <strong>Lingkar Lengan Atas (cm)</strong>
+              </label>
+
+              <input
+                id="midUpperArmCircumferenceCm"
+                type="number"
+                min="0"
+                step="0.1"
+                placeholder="Opsional"
+              >
+
+            </div>
+
+          </div>
+
+
+          <!-- IMT -->
+
+          <div
+            style="
+              margin-bottom:16px;
+              padding:12px;
+              border:1px solid #e5e7eb;
+              border-radius:8px;
+              background:#f8fafc;
+            "
+          >
+
+            <strong>IMT / BMI</strong>
+
+            <div
+              id="bmiDisplay"
+              class="muted"
+              style="margin-top:6px"
+            >
+              Belum dapat dihitung.
+            </div>
+
+          </div>
+
+
+          <!-- KESADARAN -->
+
+          <div style="margin-bottom:16px">
+
+            <label for="consciousnessLevel">
+              <strong>Tingkat Kesadaran</strong>
+            </label>
+
+            <select id="consciousnessLevel">
+
+              <option value="">
+                Pilih tingkat kesadaran
+              </option>
+
+              <option value="COMPOS_MENTIS">
+                Compos Mentis
+              </option>
+
+              <option value="APATIS">
+                Apatis
+              </option>
+
+              <option value="DELIRIUM">
+                Delirium
+              </option>
+
+              <option value="SOMNOLEN">
+                Somnolen
+              </option>
+
+              <option value="SOPOR">
+                Sopor
+              </option>
+
+              <option value="COMA">
+                Coma
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- CATATAN -->
+
+          <div style="margin-bottom:16px">
+
+            <label for="vitalAdditionalNotes">
+              <strong>Catatan Tambahan</strong>
+            </label>
+
+            <textarea
+              id="vitalAdditionalNotes"
+              rows="4"
+              placeholder="Catatan terkait pengukuran vital sign..."
+            ></textarea>
+
+          </div>
+
+
+          <!-- ACTION -->
+
+          <div style="
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+          ">
+
+            <button
+              id="saveVitalBtn"
+              type="submit"
+            >
+              Simpan Vital Sign
+            </button>
+
+
+            <button
+              id="reloadVitalBtn"
+              type="button"
+            >
+              Muat Ulang
+            </button>
+
+          </div>
+
+        </form>
+
+
+        <div
+          id="vitalInfo"
+          class="muted"
+          style="margin-top:14px"
+        >
+          Belum ada Vital Sign tersimpan.
+        </div>
+
+      </div>
+
+
+      <!-- =================================================
            KOMPONEN RME BERIKUTNYA
       ================================================== -->
 
@@ -498,10 +849,6 @@
           grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
           gap:10px;
         ">
-
-          <div class="card">
-            Vital Sign
-          </div>
 
           <div class="card">
             Pemeriksaan Fisik
