@@ -1,10 +1,11 @@
 // SIMPUS MERITAI — Fresh Start V2
-// Modul Rekam Medis Elektronik — Encounter + Anamnesis
+// Modul Rekam Medis Elektronik — Encounter + Anamnesis + Vital Sign
 
 let currentProfile = null;
 let selectedRegistration = null;
 let currentEncounter = null;
 let currentAnamnesis = null;
+let currentVital = null;
 
 
 // ============================================================
@@ -60,6 +61,18 @@ function bindEvents() {
 
   const reloadAnamnesisButton =
     document.getElementById("reloadAnamnesisBtn");
+
+  const vitalForm =
+    document.getElementById("vitalForm");
+
+  const reloadVitalButton =
+    document.getElementById("reloadVitalBtn");
+
+  const weightInput =
+    document.getElementById("weightKg");
+
+  const heightInput =
+    document.getElementById("heightCm");
 
 
   if (refreshButton) {
@@ -124,6 +137,63 @@ function bindEvents() {
         );
 
       }
+    );
+
+  }
+
+
+  if (vitalForm) {
+
+    vitalForm.addEventListener(
+      "submit",
+      saveVital
+    );
+
+  }
+
+
+  if (reloadVitalButton) {
+
+    reloadVitalButton.addEventListener(
+      "click",
+      async () => {
+
+        if (!currentEncounter) {
+
+          setMessage(
+            "Belum ada Encounter aktif.",
+            true
+          );
+
+          return;
+
+        }
+
+        await loadVital(
+          currentEncounter.id
+        );
+
+      }
+    );
+
+  }
+
+
+  if (weightInput) {
+
+    weightInput.addEventListener(
+      "input",
+      calculateBMI
+    );
+
+  }
+
+
+  if (heightInput) {
+
+    heightInput.addEventListener(
+      "input",
+      calculateBMI
     );
 
   }
@@ -326,10 +396,13 @@ async function selectRegistration(
 
   currentEncounter = null;
   currentAnamnesis = null;
+  currentVital = null;
 
   showEncounterPanel();
 
   clearAnamnesisForm();
+
+  clearVitalForm();
 
   setMessage(
     `Pendaftaran ${registration.registration_number} dipilih.`
@@ -401,9 +474,11 @@ async function loadEncounterForRegistration(
 
     currentEncounter = null;
     currentAnamnesis = null;
+    currentVital = null;
 
     updateEncounterDisplay();
     clearAnamnesisForm();
+    clearVitalForm();
 
     setMessage(
       "Pendaftaran ini belum memiliki Encounter."
@@ -427,6 +502,11 @@ async function loadEncounterForRegistration(
 
 
   await loadAnamnesis(
+    data.id
+  );
+
+
+  await loadVital(
     data.id
   );
 
@@ -558,6 +638,11 @@ async function createEncounter() {
 
 
     await loadAnamnesis(
+      data.id
+    );
+
+
+    await loadVital(
       data.id
     );
 
@@ -1053,6 +1138,375 @@ async function saveAnamnesis(
 
 
 // ============================================================
+// LOAD VITAL SIGN
+// ============================================================
+
+async function loadVital(
+  encounterId
+) {
+
+  clearVitalForm();
+
+
+  const {
+    data,
+    error
+  } = await sb
+    .from("clinical_vitals")
+    .select(`
+      id,
+      encounter_id,
+      measured_at,
+      systolic_bp,
+      diastolic_bp,
+      pulse_rate,
+      respiratory_rate,
+      temperature_c,
+      oxygen_saturation,
+      weight_kg,
+      height_cm,
+      head_circumference_cm,
+      mid_upper_arm_circumference_cm,
+      consciousness_level,
+      additional_notes,
+      recorded_by,
+      created_by,
+      updated_by,
+      created_at,
+      updated_at
+    `)
+    .eq("encounter_id", encounterId)
+    .order("measured_at", {
+      ascending: false
+    })
+    .limit(1)
+    .maybeSingle();
+
+
+  if (error) {
+
+    console.error(error);
+
+    setMessage(
+      "Gagal memuat Vital Sign.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  if (!data) {
+
+    currentVital = null;
+
+    setDefaultMeasuredAt();
+
+    updateVitalInfo(
+      "Belum ada Vital Sign tersimpan."
+    );
+
+    calculateBMI();
+
+    return;
+
+  }
+
+
+  currentVital =
+    data;
+
+
+  setInputValue(
+    "measuredAt",
+    toDateTimeLocal(data.measured_at)
+  );
+
+
+  setInputValue(
+    "systolicBp",
+    data.systolic_bp
+  );
+
+
+  setInputValue(
+    "diastolicBp",
+    data.diastolic_bp
+  );
+
+
+  setInputValue(
+    "pulseRate",
+    data.pulse_rate
+  );
+
+
+  setInputValue(
+    "respiratoryRate",
+    data.respiratory_rate
+  );
+
+
+  setInputValue(
+    "temperatureC",
+    data.temperature_c
+  );
+
+
+  setInputValue(
+    "oxygenSaturation",
+    data.oxygen_saturation
+  );
+
+
+  setInputValue(
+    "weightKg",
+    data.weight_kg
+  );
+
+
+  setInputValue(
+    "heightCm",
+    data.height_cm
+  );
+
+
+  setInputValue(
+    "headCircumferenceCm",
+    data.head_circumference_cm
+  );
+
+
+  setInputValue(
+    "midUpperArmCircumferenceCm",
+    data.mid_upper_arm_circumference_cm
+  );
+
+
+  setInputValue(
+    "consciousnessLevel",
+    data.consciousness_level
+  );
+
+
+  setInputValue(
+    "vitalAdditionalNotes",
+    data.additional_notes
+  );
+
+
+  calculateBMI();
+
+
+  updateVitalInfo(
+    `Vital Sign terakhir diukur ${formatDateTime(data.measured_at)}.`
+  );
+
+}
+
+
+// ============================================================
+// SAVE VITAL SIGN
+// ============================================================
+
+async function saveVital(
+  event
+) {
+
+  event.preventDefault();
+
+
+  if (!currentEncounter) {
+
+    setMessage(
+      "Vital Sign tidak dapat disimpan karena belum ada Encounter.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  if (
+    currentEncounter.status !==
+    "IN_PROGRESS"
+  ) {
+
+    setMessage(
+      "Vital Sign hanya dapat dicatat pada Encounter yang masih IN_PROGRESS.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  const button =
+    document.getElementById(
+      "saveVitalBtn"
+    );
+
+
+  button.disabled = true;
+
+
+  try {
+
+    const userId =
+      currentProfile.user_id;
+
+
+    const measuredAt =
+      getDateTimeValue("measuredAt");
+
+
+    const vitalData = {
+
+      encounter_id:
+        currentEncounter.id,
+
+      measured_at:
+        measuredAt || new Date().toISOString(),
+
+      systolic_bp:
+        getNumberValue("systolicBp"),
+
+      diastolic_bp:
+        getNumberValue("diastolicBp"),
+
+      pulse_rate:
+        getNumberValue("pulseRate"),
+
+      respiratory_rate:
+        getNumberValue("respiratoryRate"),
+
+      temperature_c:
+        getNumberValue("temperatureC"),
+
+      oxygen_saturation:
+        getNumberValue("oxygenSaturation"),
+
+      weight_kg:
+        getNumberValue("weightKg"),
+
+      height_cm:
+        getNumberValue("heightCm"),
+
+      head_circumference_cm:
+        getNumberValue("headCircumferenceCm"),
+
+      mid_upper_arm_circumference_cm:
+        getNumberValue("midUpperArmCircumferenceCm"),
+
+      consciousness_level:
+        getValue("consciousnessLevel"),
+
+      additional_notes:
+        getValue("vitalAdditionalNotes")
+
+    };
+
+
+    if (!currentVital) {
+
+      vitalData.recorded_by =
+        userId;
+
+      vitalData.created_by =
+        userId;
+
+
+      const {
+        data,
+        error
+      } = await sb
+        .from("clinical_vitals")
+        .insert(vitalData)
+        .select()
+        .single();
+
+
+      if (error) {
+        throw error;
+      }
+
+
+      currentVital =
+        data;
+
+
+      updateVitalInfo(
+        `Vital Sign tersimpan pada ${formatDateTime(data.measured_at)}.`
+      );
+
+
+      setMessage(
+        "Vital Sign berhasil disimpan."
+      );
+
+    } else {
+
+      vitalData.updated_by =
+        userId;
+
+
+      const {
+        data,
+        error
+      } = await sb
+        .from("clinical_vitals")
+        .update(vitalData)
+        .eq("id", currentVital.id)
+        .select()
+        .single();
+
+
+      if (error) {
+        throw error;
+      }
+
+
+      currentVital =
+        data;
+
+
+      updateVitalInfo(
+        `Vital Sign diperbarui pada ${formatDateTime(data.updated_at)}.`
+      );
+
+
+      setMessage(
+        "Vital Sign berhasil diperbarui."
+      );
+
+    }
+
+
+    calculateBMI();
+
+  } catch (error) {
+
+    console.error(error);
+
+    setMessage(
+      "Vital Sign gagal disimpan: " +
+      (error.message || "kesalahan tidak diketahui"),
+      true
+    );
+
+  } finally {
+
+    button.disabled = false;
+
+  }
+
+}
+
+
+// ============================================================
 // CLEAR ANAMNESIS FORM
 // ============================================================
 
@@ -1098,6 +1552,113 @@ function clearAnamnesisForm() {
 
 
 // ============================================================
+// CLEAR VITAL FORM
+// ============================================================
+
+function clearVitalForm() {
+
+  const fields = [
+
+    "systolicBp",
+    "diastolicBp",
+    "pulseRate",
+    "respiratoryRate",
+    "temperatureC",
+    "oxygenSaturation",
+    "weightKg",
+    "heightCm",
+    "headCircumferenceCm",
+    "midUpperArmCircumferenceCm",
+    "consciousnessLevel",
+    "vitalAdditionalNotes"
+
+  ];
+
+
+  fields.forEach(
+    id => {
+
+      const element =
+        document.getElementById(id);
+
+      if (element) {
+
+        element.value = "";
+
+      }
+
+    }
+  );
+
+
+  currentVital = null;
+
+
+  setDefaultMeasuredAt();
+
+
+  updateVitalInfo(
+    "Belum ada Vital Sign tersimpan."
+  );
+
+
+  const bmi =
+    document.getElementById(
+      "bmiDisplay"
+    );
+
+
+  if (bmi) {
+
+    bmi.textContent =
+      "Belum dapat dihitung.";
+
+  }
+
+}
+
+
+// ============================================================
+// DEFAULT WAKTU PENGUKURAN
+// ============================================================
+
+function setDefaultMeasuredAt() {
+
+  const element =
+    document.getElementById(
+      "measuredAt"
+    );
+
+
+  if (!element) {
+    return;
+  }
+
+
+  const now =
+    new Date();
+
+
+  const offset =
+    now.getTimezoneOffset();
+
+
+  const localDate =
+    new Date(
+      now.getTime() -
+      offset * 60000
+    );
+
+
+  element.value =
+    localDate
+      .toISOString()
+      .slice(0, 16);
+
+}
+
+
+// ============================================================
 // UPDATE ANAMNESIS INFO
 // ============================================================
 
@@ -1119,29 +1680,85 @@ function updateAnamnesisInfo(
 
 
 // ============================================================
-// GET FIELD VALUE
+// UPDATE VITAL INFO
 // ============================================================
 
-function getValue(
-  id
+function updateVitalInfo(
+  message
 ) {
 
   const element =
-    document.getElementById(id);
+    document.getElementById(
+      "vitalInfo"
+    );
 
 
-  if (!element) {
-    return null;
+  if (element) {
+    element.textContent = message;
+  }
+
+}
+
+
+// ============================================================
+// BMI / IMT
+// ============================================================
+
+function calculateBMI() {
+
+  const weight =
+    getNumberValue("weightKg");
+
+  const heightCm =
+    getNumberValue("heightCm");
+
+  const display =
+    document.getElementById(
+      "bmiDisplay"
+    );
+
+
+  if (!display) {
+    return;
   }
 
 
-  const value =
-    element.value.trim();
+  if (
+    !weight ||
+    !heightCm ||
+    weight <= 0 ||
+    heightCm <= 0
+  ) {
+
+    display.textContent =
+      "Belum dapat dihitung.";
+
+    return;
+
+  }
 
 
-  return value === ""
-    ? null
-    : value;
+  const heightM =
+    heightCm / 100;
+
+
+  const bmi =
+    weight /
+    (heightM * heightM);
+
+
+  if (!Number.isFinite(bmi)) {
+
+    display.textContent =
+      "Belum dapat dihitung.";
+
+    return;
+
+  }
+
+
+  display.textContent =
+    `IMT / BMI: ${bmi.toFixed(1)}`;
 
 }
 
@@ -1284,6 +1901,183 @@ function setMessage(
     isError
       ? "#b91c1c"
       : "";
+
+}
+
+
+// ============================================================
+// GENERIC FIELD HELPERS
+// ============================================================
+
+function getValue(
+  id
+) {
+
+  const element =
+    document.getElementById(id);
+
+
+  if (!element) {
+    return null;
+  }
+
+
+  const value =
+    element.value.trim();
+
+
+  return value === ""
+    ? null
+    : value;
+
+}
+
+
+function getNumberValue(
+  id
+) {
+
+  const element =
+    document.getElementById(id);
+
+
+  if (!element) {
+    return null;
+  }
+
+
+  const value =
+    element.value.trim();
+
+
+  if (value === "") {
+    return null;
+  }
+
+
+  const number =
+    Number(value);
+
+
+  return Number.isFinite(number)
+    ? number
+    : null;
+
+}
+
+
+function getDateTimeValue(
+  id
+) {
+
+  const element =
+    document.getElementById(id);
+
+
+  if (!element) {
+    return null;
+  }
+
+
+  const value =
+    element.value;
+
+
+  if (!value) {
+    return null;
+  }
+
+
+  const date =
+    new Date(value);
+
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+
+    return null;
+
+  }
+
+
+  return date.toISOString();
+
+}
+
+
+function setInputValue(
+  id,
+  value
+) {
+
+  const element =
+    document.getElementById(id);
+
+
+  if (!element) {
+    return;
+  }
+
+
+  if (
+    value === null ||
+    value === undefined
+  ) {
+
+    element.value = "";
+
+    return;
+
+  }
+
+
+  element.value =
+    value;
+
+}
+
+
+function toDateTimeLocal(
+  value
+) {
+
+  if (!value) {
+    return "";
+  }
+
+
+  const date =
+    new Date(value);
+
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+
+    return "";
+
+  }
+
+
+  const offset =
+    date.getTimezoneOffset();
+
+
+  const localDate =
+    new Date(
+      date.getTime() -
+      offset * 60000
+    );
+
+
+  return localDate
+    .toISOString()
+    .slice(0, 16);
 
 }
 
