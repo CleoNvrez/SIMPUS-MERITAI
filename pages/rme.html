@@ -29,29 +29,39 @@
 
 <main>
 
-  <!-- JUDUL -->
+  <!-- =====================================================
+       HEADER RME
+  ====================================================== -->
+
   <div class="card">
+
     <h2>Rekam Medis Elektronik</h2>
 
     <p class="muted">
       Modul pelayanan Rekam Medis Elektronik berbasis Encounter.
     </p>
+
   </div>
 
 
-  <!-- PILIH PENDAFTARAN -->
+  <!-- =====================================================
+       PENDAFTARAN
+  ====================================================== -->
+
   <div class="card">
 
     <h3>Pendaftaran Hari Ini</h3>
 
     <p class="muted">
-      Pilih pasien yang akan mulai mendapatkan pelayanan.
+      Pilih pasien yang akan mendapatkan pelayanan.
     </p>
 
     <div style="overflow-x:auto">
 
       <table style="width:100%">
+
         <thead>
+
           <tr>
             <th>No. Registrasi</th>
             <th>No. RM</th>
@@ -61,14 +71,22 @@
             <th>Status</th>
             <th>Aksi</th>
           </tr>
+
         </thead>
 
         <tbody id="registrationTable">
+
           <tr>
-            <td colspan="7" class="muted">
+
+            <td
+              colspan="7"
+              class="muted"
+            >
               Memuat data pendaftaran...
             </td>
+
           </tr>
+
         </tbody>
 
       </table>
@@ -78,7 +96,10 @@
   </div>
 
 
-  <!-- ENCOUNTER AKTIF -->
+  <!-- =====================================================
+       ENCOUNTER
+  ====================================================== -->
+
   <div class="card">
 
     <h3>Encounter Pelayanan</h3>
@@ -92,7 +113,12 @@
     </div>
 
 
-    <div id="encounterPanel" style="display:none">
+    <div
+      id="encounterPanel"
+      style="display:none"
+    >
+
+      <!-- IDENTITAS ENCOUNTER -->
 
       <div style="
         display:grid;
@@ -102,32 +128,63 @@
       ">
 
         <div>
-          <small class="muted">Nomor Encounter</small>
-          <strong id="encounterNumber">-</strong>
+          <small class="muted">
+            Nomor Encounter
+          </small>
+
+          <strong id="encounterNumber">
+            -
+          </strong>
         </div>
 
-        <div>
-          <small class="muted">Pasien</small>
-          <strong id="encounterPatient">-</strong>
-        </div>
 
         <div>
-          <small class="muted">No. RM</small>
-          <strong id="encounterRM">-</strong>
+          <small class="muted">
+            Pasien
+          </small>
+
+          <strong id="encounterPatient">
+            -
+          </strong>
         </div>
 
-        <div>
-          <small class="muted">Unit Pelayanan</small>
-          <strong id="encounterUnit">-</strong>
-        </div>
 
         <div>
-          <small class="muted">Status</small>
-          <strong id="encounterStatus">-</strong>
+          <small class="muted">
+            No. RM
+          </small>
+
+          <strong id="encounterRM">
+            -
+          </strong>
+        </div>
+
+
+        <div>
+          <small class="muted">
+            Unit Pelayanan
+          </small>
+
+          <strong id="encounterUnit">
+            -
+          </strong>
+        </div>
+
+
+        <div>
+          <small class="muted">
+            Status
+          </small>
+
+          <strong id="encounterStatus">
+            -
+          </strong>
         </div>
 
       </div>
 
+
+      <!-- ACTION ENCOUNTER -->
 
       <div style="
         display:flex;
@@ -136,9 +193,13 @@
         margin-bottom:18px;
       ">
 
-        <button id="startEncounterBtn">
+        <button
+          id="startEncounterBtn"
+          type="button"
+        >
           Mulai / Buka Encounter
         </button>
+
 
         <button
           id="refreshEncounterBtn"
@@ -150,7 +211,10 @@
       </div>
 
 
-      <!-- PESERTA -->
+      <!-- =================================================
+           PESERTA PELAYANAN
+      ================================================== -->
+
       <div>
 
         <h4>Peserta Pelayanan</h4>
@@ -160,6 +224,7 @@
           <table style="width:100%">
 
             <thead>
+
               <tr>
                 <th>Peran</th>
                 <th>Profesi</th>
@@ -167,14 +232,20 @@
                 <th>Utama</th>
                 <th>Mulai</th>
               </tr>
+
             </thead>
 
             <tbody id="participantTable">
 
               <tr>
-                <td colspan="5" class="muted">
+
+                <td
+                  colspan="5"
+                  class="muted"
+                >
                   Belum ada peserta pelayanan.
                 </td>
+
               </tr>
 
             </tbody>
@@ -186,7 +257,227 @@
       </div>
 
 
-      <!-- AREA RME KLINIS -->
+      <!-- =================================================
+           ANAMNESIS
+      ================================================== -->
+
+      <div
+        id="anamnesisArea"
+        style="
+          margin-top:24px;
+          padding:18px;
+          border:1px solid #e5e7eb;
+          border-radius:10px;
+          background:#ffffff;
+        "
+      >
+
+        <h3>Anamnesis</h3>
+
+        <p class="muted">
+          Catat informasi subjektif yang diperoleh dari pasien
+          atau sumber informasi lain selama pelayanan.
+        </p>
+
+
+        <form id="anamnesisForm">
+
+          <!-- KELUHAN UTAMA -->
+
+          <div style="margin-bottom:16px">
+
+            <label for="chiefComplaint">
+              <strong>Keluhan Utama</strong>
+            </label>
+
+            <textarea
+              id="chiefComplaint"
+              rows="3"
+              placeholder="Tuliskan keluhan utama pasien..."
+            ></textarea>
+
+          </div>
+
+
+          <!-- RIWAYAT PENYAKIT SEKARANG -->
+
+          <div style="margin-bottom:16px">
+
+            <label for="presentIllnessHistory">
+              <strong>Riwayat Penyakit Sekarang</strong>
+            </label>
+
+            <textarea
+              id="presentIllnessHistory"
+              rows="5"
+              placeholder="Jelaskan kronologi, onset, lokasi, durasi, faktor pencetus/peringan, dan informasi relevan lainnya..."
+            ></textarea>
+
+          </div>
+
+
+          <!-- RIWAYAT PENYAKIT DAHULU -->
+
+          <div style="margin-bottom:16px">
+
+            <label for="pastMedicalHistory">
+              <strong>Riwayat Penyakit Dahulu</strong>
+            </label>
+
+            <textarea
+              id="pastMedicalHistory"
+              rows="4"
+              placeholder="Riwayat penyakit, rawat inap, operasi, atau kondisi medis sebelumnya..."
+            ></textarea>
+
+          </div>
+
+
+          <!-- RIWAYAT KELUARGA -->
+
+          <div style="margin-bottom:16px">
+
+            <label for="familyHistory">
+              <strong>Riwayat Penyakit Keluarga</strong>
+            </label>
+
+            <textarea
+              id="familyHistory"
+              rows="4"
+              placeholder="Riwayat penyakit yang relevan pada keluarga..."
+            ></textarea>
+
+          </div>
+
+
+          <!-- ALERGI -->
+
+          <div style="margin-bottom:16px">
+
+            <label for="allergyHistory">
+              <strong>Riwayat Alergi</strong>
+            </label>
+
+            <textarea
+              id="allergyHistory"
+              rows="3"
+              placeholder="Obat, makanan, atau bahan lain yang diketahui menyebabkan alergi..."
+            ></textarea>
+
+          </div>
+
+
+          <!-- RIWAYAT OBAT -->
+
+          <div style="margin-bottom:16px">
+
+            <label for="medicationHistory">
+              <strong>Riwayat Penggunaan Obat</strong>
+            </label>
+
+            <textarea
+              id="medicationHistory"
+              rows="4"
+              placeholder="Obat yang sedang atau pernah digunakan, termasuk obat rutin..."
+            ></textarea>
+
+          </div>
+
+
+          <!-- RIWAYAT SOSIAL -->
+
+          <div style="margin-bottom:16px">
+
+            <label for="socialHistory">
+              <strong>Riwayat Sosial</strong>
+            </label>
+
+            <textarea
+              id="socialHistory"
+              rows="4"
+              placeholder="Kebiasaan, pola hidup, pekerjaan, dukungan keluarga, dan faktor sosial yang relevan..."
+            ></textarea>
+
+          </div>
+
+
+          <!-- FAKTOR RISIKO -->
+
+          <div style="margin-bottom:16px">
+
+            <label for="riskFactors">
+              <strong>Faktor Risiko</strong>
+            </label>
+
+            <textarea
+              id="riskFactors"
+              rows="4"
+              placeholder="Faktor risiko yang relevan dengan kondisi pasien..."
+            ></textarea>
+
+          </div>
+
+
+          <!-- CATATAN TAMBAHAN -->
+
+          <div style="margin-bottom:16px">
+
+            <label for="additionalNotes">
+              <strong>Catatan Tambahan</strong>
+            </label>
+
+            <textarea
+              id="additionalNotes"
+              rows="4"
+              placeholder="Catatan anamnesis tambahan..."
+            ></textarea>
+
+          </div>
+
+
+          <!-- ACTION -->
+
+          <div style="
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+          ">
+
+            <button
+              id="saveAnamnesisBtn"
+              type="submit"
+            >
+              Simpan Anamnesis
+            </button>
+
+
+            <button
+              id="reloadAnamnesisBtn"
+              type="button"
+            >
+              Muat Ulang
+            </button>
+
+          </div>
+
+        </form>
+
+
+        <div
+          id="anamnesisInfo"
+          class="muted"
+          style="margin-top:14px"
+        >
+          Belum ada anamnesis tersimpan.
+        </div>
+
+      </div>
+
+
+      <!-- =================================================
+           KOMPONEN RME BERIKUTNYA
+      ================================================== -->
+
       <div
         id="clinicalArea"
         style="
@@ -198,21 +489,15 @@
         "
       >
 
-        <h4>Komponen Rekam Medis</h4>
-
-        <p class="muted">
-          Komponen klinis akan tersedia setelah Encounter aktif.
-        </p>
+        <h4>
+          Komponen Rekam Medis Berikutnya
+        </h4>
 
         <div style="
           display:grid;
           grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
           gap:10px;
         ">
-
-          <div class="card">
-            Anamnesis
-          </div>
 
           <div class="card">
             Vital Sign
@@ -243,7 +528,10 @@
   </div>
 
 
-  <!-- PESAN SISTEM -->
+  <!-- =====================================================
+       PESAN SISTEM
+  ====================================================== -->
+
   <div class="card">
 
     <div
