@@ -1,1 +1,344 @@
-<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pendaftaran | Puskesmas Meritai</title><link rel="stylesheet" href="../assets/css/app.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../assets/js/config.js"></script><script src="../assets/js/auth.js"></script></head><body><header><strong>Puskesmas Meritai</strong><button style="max-width:120px;float:right;margin:0" onclick="logout()">Keluar</button></header><main><div class="card"><h2>Pendaftaran</h2><p class="muted">Modul Pendaftaran — Fresh Start V2.</p></div></main></body></html>
+<!doctype html>
+<html lang="id">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <title>Pendaftaran | Puskesmas Meritai</title>
+
+  <link rel="stylesheet" href="../assets/css/app.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/config.js"></script>
+  <script src="../assets/js/auth.js"></script>
+</head>
+
+<body>
+
+<header>
+  <strong>🏥 Puskesmas Meritai</strong>
+
+  <button
+    style="max-width:120px;float:right;margin:0"
+    onclick="logout()"
+  >
+    Keluar
+  </button>
+</header>
+
+<main>
+
+  <!-- JUDUL -->
+  <div class="card">
+    <h2>Pendaftaran Pasien</h2>
+
+    <p class="muted">
+      Registrasi kunjungan pasien ke unit pelayanan Puskesmas.
+    </p>
+  </div>
+
+
+  <!-- PENCARIAN PASIEN -->
+  <div class="card">
+
+    <h3>1. Cari Pasien</h3>
+
+    <div class="grid">
+
+      <div>
+        <label for="patientSearch">
+          Nama / No. RM / NIK / No. HP
+        </label>
+
+        <input
+          id="patientSearch"
+          type="text"
+          autocomplete="off"
+          placeholder="Masukkan minimal 2 karakter"
+        >
+      </div>
+
+      <div style="display:flex;align-items:end">
+
+        <button
+          type="button"
+          id="btnSearchPatient"
+        >
+          Cari Pasien
+        </button>
+
+      </div>
+
+    </div>
+
+    <p
+      id="patientSearchMessage"
+      class="muted"
+    ></p>
+
+    <div id="patientSearchResults">
+      <p class="muted">
+        Belum ada pencarian.
+      </p>
+    </div>
+
+  </div>
+
+
+  <!-- PASIEN TERPILIH -->
+  <div
+    class="card"
+    id="selectedPatientCard"
+    style="display:none"
+  >
+
+    <h3>2. Pasien Terpilih</h3>
+
+    <div id="selectedPatient"></div>
+
+    <button
+      type="button"
+      id="btnChangePatient"
+      style="max-width:180px;margin-top:16px"
+    >
+      Ganti Pasien
+    </button>
+
+  </div>
+
+
+  <!-- FORM PENDAFTARAN -->
+  <div
+    class="card"
+    id="registrationCard"
+    style="display:none"
+  >
+
+    <h3>3. Data Pendaftaran</h3>
+
+    <form id="registrationForm">
+
+      <div class="grid">
+
+        <div>
+
+          <label for="payer">
+            Penjamin
+          </label>
+
+          <select id="payer">
+
+            <option value="">
+              -- Pilih Penjamin --
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div>
+
+          <label for="serviceUnit">
+            Unit Pelayanan *
+          </label>
+
+          <select
+            id="serviceUnit"
+            required
+          >
+
+            <option value="">
+              -- Pilih Unit Pelayanan --
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div>
+
+          <label for="visitType">
+            Jenis Kunjungan *
+          </label>
+
+          <select
+            id="visitType"
+            required
+          >
+
+            <option value="NEW">
+              Kunjungan Baru
+            </option>
+
+            <option value="FOLLOW_UP">
+              Kunjungan Ulang / Follow Up
+            </option>
+
+            <option value="EMERGENCY">
+              Kegawatdaruratan
+            </option>
+
+            <option value="REFERRAL">
+              Rujukan
+            </option>
+
+            <option value="OTHER">
+              Lainnya
+            </option>
+
+          </select>
+
+        </div>
+
+      </div>
+
+
+      <div style="margin-top:16px">
+
+        <label for="chiefComplaint">
+          Keluhan Utama
+        </label>
+
+        <textarea
+          id="chiefComplaint"
+          rows="3"
+          maxlength="2000"
+          placeholder="Tuliskan keluhan utama pasien jika sudah diketahui."
+        ></textarea>
+
+      </div>
+
+
+      <div style="margin-top:16px">
+
+        <label for="referralSource">
+          Asal Rujukan
+        </label>
+
+        <input
+          id="referralSource"
+          type="text"
+          maxlength="150"
+          placeholder="Diisi jika pasien datang melalui rujukan."
+        >
+
+      </div>
+
+
+      <div style="margin-top:16px">
+
+        <label for="referralNumber">
+          Nomor Rujukan
+        </label>
+
+        <input
+          id="referralNumber"
+          type="text"
+          maxlength="100"
+          placeholder="Nomor surat/rujukan jika ada."
+        >
+
+      </div>
+
+
+      <div style="margin-top:16px">
+
+        <label for="registrationNotes">
+          Catatan Pendaftaran
+        </label>
+
+        <textarea
+          id="registrationNotes"
+          rows="3"
+          maxlength="2000"
+        ></textarea>
+
+      </div>
+
+
+      <p id="registrationMessage"></p>
+
+
+      <div
+        style="
+          display:flex;
+          gap:10px;
+          flex-wrap:wrap;
+          margin-top:18px;
+        "
+      >
+
+        <button
+          type="submit"
+          id="btnSaveRegistration"
+          style="max-width:220px"
+        >
+          Simpan Pendaftaran
+        </button>
+
+
+        <button
+          type="button"
+          id="btnResetRegistration"
+          style="max-width:180px"
+        >
+          Batal
+        </button>
+
+      </div>
+
+    </form>
+
+  </div>
+
+
+  <!-- HASIL PENDAFTARAN -->
+  <div
+    class="card"
+    id="registrationResultCard"
+    style="display:none"
+  >
+
+    <h3>Pendaftaran Berhasil</h3>
+
+    <div id="registrationResult"></div>
+
+  </div>
+
+
+  <!-- DAFTAR PENDAFTARAN HARI INI -->
+  <div class="card">
+
+    <h3>4. Pendaftaran Hari Ini</h3>
+
+    <button
+      type="button"
+      id="btnLoadToday"
+      style="max-width:220px"
+    >
+      Muat Pendaftaran Hari Ini
+    </button>
+
+    <p
+      id="todayMessage"
+      class="muted"
+    ></p>
+
+    <div id="todayRegistrations">
+      <p class="muted">
+        Belum dimuat.
+      </p>
+    </div>
+
+  </div>
+
+</main>
+
+
+<script src="../assets/js/pendaftaran.js"></script>
+
+</body>
+</html>
