@@ -1,9 +1,10 @@
 // SIMPUS MERITAI — Fresh Start V2
-// Modul Rekam Medis Elektronik — Encounter
+// Modul Rekam Medis Elektronik — Encounter + Anamnesis
 
 let currentProfile = null;
 let selectedRegistration = null;
 let currentEncounter = null;
+let currentAnamnesis = null;
 
 
 // ============================================================
@@ -54,6 +55,12 @@ function bindEvents() {
   const startButton =
     document.getElementById("startEncounterBtn");
 
+  const anamnesisForm =
+    document.getElementById("anamnesisForm");
+
+  const reloadAnamnesisButton =
+    document.getElementById("reloadAnamnesisBtn");
+
 
   if (refreshButton) {
 
@@ -80,6 +87,43 @@ function bindEvents() {
     startButton.addEventListener(
       "click",
       createEncounter
+    );
+
+  }
+
+
+  if (anamnesisForm) {
+
+    anamnesisForm.addEventListener(
+      "submit",
+      saveAnamnesis
+    );
+
+  }
+
+
+  if (reloadAnamnesisButton) {
+
+    reloadAnamnesisButton.addEventListener(
+      "click",
+      async () => {
+
+        if (!currentEncounter) {
+
+          setMessage(
+            "Belum ada Encounter aktif.",
+            true
+          );
+
+          return;
+
+        }
+
+        await loadAnamnesis(
+          currentEncounter.id
+        );
+
+      }
     );
 
   }
@@ -280,17 +324,16 @@ async function selectRegistration(
   selectedRegistration =
     registration;
 
-
   currentEncounter = null;
-
+  currentAnamnesis = null;
 
   showEncounterPanel();
 
+  clearAnamnesisForm();
 
   setMessage(
     `Pendaftaran ${registration.registration_number} dipilih.`
   );
-
 
   await loadEncounterForRegistration(
     registration.id
@@ -357,8 +400,10 @@ async function loadEncounterForRegistration(
   if (!data) {
 
     currentEncounter = null;
+    currentAnamnesis = null;
 
     updateEncounterDisplay();
+    clearAnamnesisForm();
 
     setMessage(
       "Pendaftaran ini belum memiliki Encounter."
@@ -377,6 +422,11 @@ async function loadEncounterForRegistration(
 
 
   await loadParticipants(
+    data.id
+  );
+
+
+  await loadAnamnesis(
     data.id
   );
 
@@ -428,14 +478,6 @@ async function createEncounter() {
 
   try {
 
-    /*
-      Encounter harus dibuat melalui pendaftaran
-      yang sudah ada.
-
-      Kita menggunakan data registration
-      sebagai sumber identitas pasien dan unit.
-    */
-
     const registration =
       selectedRegistration;
 
@@ -480,11 +522,6 @@ async function createEncounter() {
 
       console.error(error);
 
-      /*
-        Jika database menolak karena Encounter
-        sudah dibuat oleh proses lain, kita
-        refresh agar tidak membuat duplikasi.
-      */
 
       if (
         error.code === "23505"
@@ -516,6 +553,11 @@ async function createEncounter() {
 
 
     await loadParticipants(
+      data.id
+    );
+
+
+    await loadAnamnesis(
       data.id
     );
 
@@ -695,7 +737,417 @@ async function loadParticipants(
 
 
 // ============================================================
-// UPDATE DISPLAY
+// LOAD ANAMNESIS
+// ============================================================
+
+async function loadAnamnesis(
+  encounterId
+) {
+
+  clearAnamnesisForm();
+
+
+  const {
+    data,
+    error
+  } = await sb
+    .from("clinical_anamneses")
+    .select(`
+      id,
+      encounter_id,
+      chief_complaint,
+      present_illness_history,
+      past_medical_history,
+      family_history,
+      allergy_history,
+      medication_history,
+      social_history,
+      risk_factors,
+      additional_notes,
+      recorded_by,
+      recorded_at,
+      created_by,
+      updated_by,
+      created_at,
+      updated_at
+    `)
+    .eq("encounter_id", encounterId)
+    .order("recorded_at", {
+      ascending: false
+    })
+    .limit(1)
+    .maybeSingle();
+
+
+  if (error) {
+
+    console.error(error);
+
+    setMessage(
+      "Gagal memuat anamnesis.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  if (!data) {
+
+    currentAnamnesis = null;
+
+    updateAnamnesisInfo(
+      "Belum ada anamnesis tersimpan."
+    );
+
+    return;
+
+  }
+
+
+  currentAnamnesis =
+    data;
+
+
+  document.getElementById(
+    "chiefComplaint"
+  ).value =
+    data.chief_complaint || "";
+
+
+  document.getElementById(
+    "presentIllnessHistory"
+  ).value =
+    data.present_illness_history || "";
+
+
+  document.getElementById(
+    "pastMedicalHistory"
+  ).value =
+    data.past_medical_history || "";
+
+
+  document.getElementById(
+    "familyHistory"
+  ).value =
+    data.family_history || "";
+
+
+  document.getElementById(
+    "allergyHistory"
+  ).value =
+    data.allergy_history || "";
+
+
+  document.getElementById(
+    "medicationHistory"
+  ).value =
+    data.medication_history || "";
+
+
+  document.getElementById(
+    "socialHistory"
+  ).value =
+    data.social_history || "";
+
+
+  document.getElementById(
+    "riskFactors"
+  ).value =
+    data.risk_factors || "";
+
+
+  document.getElementById(
+    "additionalNotes"
+  ).value =
+    data.additional_notes || "";
+
+
+  updateAnamnesisInfo(
+    `Anamnesis terakhir dicatat ${formatDateTime(data.recorded_at)}.`
+  );
+
+}
+
+
+// ============================================================
+// SAVE ANAMNESIS
+// ============================================================
+
+async function saveAnamnesis(
+  event
+) {
+
+  event.preventDefault();
+
+
+  if (!currentEncounter) {
+
+    setMessage(
+      "Anamnesis tidak dapat disimpan karena belum ada Encounter.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  if (
+    currentEncounter.status !==
+    "IN_PROGRESS"
+  ) {
+
+    setMessage(
+      "Anamnesis hanya dapat dicatat pada Encounter yang masih IN_PROGRESS.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  const button =
+    document.getElementById(
+      "saveAnamnesisBtn"
+    );
+
+
+  button.disabled = true;
+
+
+  try {
+
+    const userId =
+      currentProfile.user_id;
+
+
+    const anamnesisData = {
+
+      encounter_id:
+        currentEncounter.id,
+
+      chief_complaint:
+        getValue("chiefComplaint"),
+
+      present_illness_history:
+        getValue("presentIllnessHistory"),
+
+      past_medical_history:
+        getValue("pastMedicalHistory"),
+
+      family_history:
+        getValue("familyHistory"),
+
+      allergy_history:
+        getValue("allergyHistory"),
+
+      medication_history:
+        getValue("medicationHistory"),
+
+      social_history:
+        getValue("socialHistory"),
+
+      risk_factors:
+        getValue("riskFactors"),
+
+      additional_notes:
+        getValue("additionalNotes")
+
+    };
+
+
+    if (!currentAnamnesis) {
+
+      anamnesisData.recorded_by =
+        userId;
+
+      anamnesisData.created_by =
+        userId;
+
+
+      const {
+        data,
+        error
+      } = await sb
+        .from("clinical_anamneses")
+        .insert(anamnesisData)
+        .select()
+        .single();
+
+
+      if (error) {
+        throw error;
+      }
+
+
+      currentAnamnesis =
+        data;
+
+
+      updateAnamnesisInfo(
+        `Anamnesis tersimpan pada ${formatDateTime(data.recorded_at)}.`
+      );
+
+
+      setMessage(
+        "Anamnesis berhasil disimpan."
+      );
+
+    } else {
+
+      anamnesisData.updated_by =
+        userId;
+
+
+      const {
+        data,
+        error
+      } = await sb
+        .from("clinical_anamneses")
+        .update(anamnesisData)
+        .eq("id", currentAnamnesis.id)
+        .select()
+        .single();
+
+
+      if (error) {
+        throw error;
+      }
+
+
+      currentAnamnesis =
+        data;
+
+
+      updateAnamnesisInfo(
+        `Anamnesis diperbarui pada ${formatDateTime(data.updated_at)}.`
+      );
+
+
+      setMessage(
+        "Anamnesis berhasil diperbarui."
+      );
+
+    }
+
+  } catch (error) {
+
+    console.error(error);
+
+    setMessage(
+      "Anamnesis gagal disimpan: " +
+      (error.message || "kesalahan tidak diketahui"),
+      true
+    );
+
+  } finally {
+
+    button.disabled = false;
+
+  }
+
+}
+
+
+// ============================================================
+// CLEAR ANAMNESIS FORM
+// ============================================================
+
+function clearAnamnesisForm() {
+
+  const fields = [
+
+    "chiefComplaint",
+    "presentIllnessHistory",
+    "pastMedicalHistory",
+    "familyHistory",
+    "allergyHistory",
+    "medicationHistory",
+    "socialHistory",
+    "riskFactors",
+    "additionalNotes"
+
+  ];
+
+
+  fields.forEach(
+    id => {
+
+      const element =
+        document.getElementById(id);
+
+      if (element) {
+        element.value = "";
+      }
+
+    }
+  );
+
+
+  currentAnamnesis = null;
+
+
+  updateAnamnesisInfo(
+    "Belum ada anamnesis tersimpan."
+  );
+
+}
+
+
+// ============================================================
+// UPDATE ANAMNESIS INFO
+// ============================================================
+
+function updateAnamnesisInfo(
+  message
+) {
+
+  const element =
+    document.getElementById(
+      "anamnesisInfo"
+    );
+
+
+  if (element) {
+    element.textContent = message;
+  }
+
+}
+
+
+// ============================================================
+// GET FIELD VALUE
+// ============================================================
+
+function getValue(
+  id
+) {
+
+  const element =
+    document.getElementById(id);
+
+
+  if (!element) {
+    return null;
+  }
+
+
+  const value =
+    element.value.trim();
+
+
+  return value === ""
+    ? null
+    : value;
+
+}
+
+
+// ============================================================
+// UPDATE ENCOUNTER DISPLAY
 // ============================================================
 
 function updateEncounterDisplay() {
@@ -871,9 +1323,11 @@ function formatDateTime(
     new Date(value);
 
 
-  if (Number.isNaN(
-    date.getTime()
-  )) {
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
 
     return "-";
 
