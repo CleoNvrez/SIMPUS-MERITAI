@@ -1515,15 +1515,355 @@
           padding:18px;
           border:1px solid #e5e7eb;
           border-radius:10px;
-          background:#f8fafc;
+          background:#ffffff;
         "
       >
 
         <h3>Rujukan</h3>
 
         <p class="muted">
-          Komponen Rujukan akan dikembangkan pada tahap berikutnya.
+          Catat rujukan pasien ke fasilitas pelayanan kesehatan
+          atau tujuan pelayanan lainnya selama Encounter.
         </p>
+
+
+        <form id="referralForm">
+
+          <!-- WAKTU + JENIS RUJUKAN -->
+
+          <div style="
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+            gap:12px;
+            margin-bottom:16px;
+          ">
+
+            <div>
+
+              <label for="referredAt">
+                <strong>Waktu Rujukan</strong>
+              </label>
+
+              <input
+                id="referredAt"
+                type="datetime-local"
+              >
+
+            </div>
+
+
+            <div>
+
+              <label for="referralType">
+                <strong>Jenis Rujukan</strong>
+              </label>
+
+              <select
+                id="referralType"
+                required
+              >
+
+                <option value="">
+                  Pilih jenis rujukan
+                </option>
+
+                <option value="OUTPATIENT">
+                  Rujukan Rawat Jalan
+                </option>
+
+                <option value="EMERGENCY">
+                  Rujukan Kegawatdaruratan
+                </option>
+
+                <option value="INPATIENT">
+                  Rujukan Rawat Inap
+                </option>
+
+                <option value="SPECIALIST">
+                  Rujukan Spesialis
+                </option>
+
+                <option value="DIAGNOSTIC">
+                  Rujukan Pemeriksaan Penunjang
+                </option>
+
+                <option value="OTHER">
+                  Lainnya
+                </option>
+
+              </select>
+
+            </div>
+
+          </div>
+
+
+          <!-- FASILITAS TUJUAN -->
+
+          <div style="
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+            gap:12px;
+            margin-bottom:16px;
+          ">
+
+            <div>
+
+              <label for="destinationFacilityName">
+                <strong>Fasilitas Tujuan</strong>
+              </label>
+
+              <input
+                id="destinationFacilityName"
+                type="text"
+                maxlength="255"
+                placeholder="Contoh: RSUD / Klinik / Fasilitas tujuan"
+                required
+              >
+
+            </div>
+
+
+            <div>
+
+              <label for="destinationFacilityCode">
+                <strong>Kode Fasilitas</strong>
+              </label>
+
+              <input
+                id="destinationFacilityCode"
+                type="text"
+                maxlength="100"
+                placeholder="Opsional"
+              >
+
+              <small class="muted">
+                Diisi jika fasilitas tujuan memiliki kode yang digunakan dalam sistem.
+              </small>
+
+            </div>
+
+          </div>
+
+
+          <!-- ALASAN RUJUKAN -->
+
+          <div style="margin-bottom:16px">
+
+            <label for="referralReason">
+              <strong>Alasan / Indikasi Rujukan</strong>
+            </label>
+
+            <textarea
+              id="referralReason"
+              rows="5"
+              placeholder="Jelaskan alasan klinis dan indikasi pasien perlu dirujuk..."
+              required
+            ></textarea>
+
+          </div>
+
+
+          <!-- RINGKASAN KLINIS -->
+
+          <div style="margin-bottom:16px">
+
+            <label for="clinicalSummary">
+              <strong>Ringkasan Klinis</strong>
+            </label>
+
+            <textarea
+              id="clinicalSummary"
+              rows="5"
+              placeholder="Ringkasan kondisi, hasil pemeriksaan, terapi atau informasi klinis penting untuk fasilitas tujuan..."
+            ></textarea>
+
+          </div>
+
+
+          <!-- DIAGNOSIS RUJUKAN -->
+
+          <div style="margin-bottom:16px">
+
+            <label for="referralDiagnosis">
+              <strong>Diagnosis Rujukan</strong>
+            </label>
+
+            <textarea
+              id="referralDiagnosis"
+              rows="4"
+              placeholder="Tuliskan diagnosis yang menjadi dasar rujukan..."
+            ></textarea>
+
+          </div>
+
+
+          <!-- KONDISI PASIEN -->
+
+          <div style="margin-bottom:16px">
+
+            <label for="patientCondition">
+              <strong>Kondisi Pasien Saat Dirujuk</strong>
+            </label>
+
+            <textarea
+              id="patientCondition"
+              rows="4"
+              placeholder="Jelaskan kondisi pasien saat rujukan, termasuk kondisi umum dan hal penting yang perlu diketahui..."
+            ></textarea>
+
+          </div>
+
+
+          <!-- NOMOR + STATUS -->
+
+          <div style="
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+            gap:12px;
+            margin-bottom:16px;
+          ">
+
+            <div>
+
+              <label for="referralNumber">
+                <strong>Nomor Rujukan</strong>
+              </label>
+
+              <input
+                id="referralNumber"
+                type="text"
+                maxlength="100"
+                placeholder="Opsional / diisi setelah nomor tersedia"
+              >
+
+            </div>
+
+
+            <div>
+
+              <label for="referralStatus">
+                <strong>Status Rujukan</strong>
+              </label>
+
+              <select id="referralStatus">
+
+                <option value="PLANNED">
+                  Direncanakan
+                </option>
+
+                <option value="REFERRED">
+                  Dirujuk
+                </option>
+
+                <option value="ACCEPTED">
+                  Diterima Fasilitas Tujuan
+                </option>
+
+                <option value="COMPLETED">
+                  Selesai
+                </option>
+
+                <option value="CANCELLED">
+                  Dibatalkan
+                </option>
+
+              </select>
+
+            </div>
+
+          </div>
+
+
+          <!-- BUTTON -->
+
+          <div style="
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+          ">
+
+            <button
+              id="saveReferralBtn"
+              type="submit"
+            >
+              Tambah Rujukan
+            </button>
+
+
+            <button
+              id="cancelReferralEditBtn"
+              type="button"
+              style="display:none"
+            >
+              Batal Ubah
+            </button>
+
+
+            <button
+              id="reloadReferralBtn"
+              type="button"
+            >
+              Muat Ulang
+            </button>
+
+          </div>
+
+        </form>
+
+
+        <div
+          id="referralInfo"
+          class="muted"
+          style="margin-top:14px"
+        >
+          Belum ada rujukan tersimpan.
+        </div>
+
+
+        <!-- DAFTAR RUJUKAN -->
+
+        <div style="
+          margin-top:18px;
+          overflow-x:auto;
+        ">
+
+          <table style="width:100%">
+
+            <thead>
+
+              <tr>
+                <th>Waktu</th>
+                <th>Jenis</th>
+                <th>Fasilitas Tujuan</th>
+                <th>Alasan</th>
+                <th>Diagnosis</th>
+                <th>No. Rujukan</th>
+                <th>Status</th>
+                <th>Diperbarui</th>
+                <th>Aksi</th>
+              </tr>
+
+            </thead>
+
+            <tbody id="referralTable">
+
+              <tr>
+
+                <td
+                  colspan="9"
+                  class="muted"
+                >
+                  Belum ada rujukan tersimpan.
+                </td>
+
+              </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
 
       </div>
 
