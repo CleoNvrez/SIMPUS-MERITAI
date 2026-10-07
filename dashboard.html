@@ -1,4 +1,3 @@
-```html
 <!doctype html>
 <html lang="id">
 <head>
@@ -17,7 +16,7 @@
 <body>
 
 <header>
-  <strong>Puskesmas Meritai</strong>
+  <strong>🏥 Puskesmas Meritai</strong>
 
   <button
     style="max-width:120px;float:right;margin:0"
@@ -29,7 +28,10 @@
 
 <main>
 
+  <!-- INFORMASI PENGGUNA -->
+
   <div class="card">
+
     <h2>Dashboard</h2>
 
     <p>
@@ -46,52 +48,173 @@
       Role:
       <strong id="userRole">...</strong>
     </p>
+
   </div>
 
 
-  <div class="grid">
+  <!-- ADMINISTRASI -->
 
-    <div class="card">
-      <h3>Administrasi</h3>
-      <p class="muted">
-        Pasien · Pendaftaran · Antrean
-      </p>
+  <div class="card">
+
+    <h3>Administrasi</h3>
+
+    <p class="muted">
+      Identitas pasien, pendaftaran, dan antrean pelayanan.
+    </p>
+
+    <div class="grid">
+
+      <a class="menu-card" href="pages/pasien.html">
+        <strong>👤 Pasien</strong>
+        <span>Master identitas pasien</span>
+      </a>
+
+      <a class="menu-card" href="pages/pendaftaran.html">
+        <strong>📝 Pendaftaran</strong>
+        <span>Registrasi kunjungan pasien</span>
+      </a>
+
+      <a class="menu-card" href="pages/antrean.html">
+        <strong>🎫 Antrean</strong>
+        <span>Manajemen antrean pelayanan</span>
+      </a>
+
     </div>
 
-    <div class="card">
-      <h3>Pelayanan</h3>
-      <p class="muted">
-        RME · Klinis · Klaster
-      </p>
+  </div>
+
+
+  <!-- PELAYANAN -->
+
+  <div class="card">
+
+    <h3>Pelayanan</h3>
+
+    <p class="muted">
+      Rekam medis elektronik dan pelayanan klinis.
+    </p>
+
+    <div class="grid">
+
+      <a class="menu-card" href="pages/rme.html">
+        <strong>📋 RME</strong>
+        <span>Rekam Medis Elektronik</span>
+      </a>
+
+      <a class="menu-card" href="pages/pelayanan-klinis.html">
+        <strong>🩺 Pelayanan Klinis</strong>
+        <span>Anamnesis, pemeriksaan, diagnosis dan tindakan</span>
+      </a>
+
+      <a class="menu-card" href="pages/klaster.html">
+        <strong>🏥 Klaster</strong>
+        <span>Pelayanan berbasis klaster Puskesmas</span>
+      </a>
+
     </div>
 
-    <div class="card">
-      <h3>Penunjang</h3>
-      <p class="muted">
-        Farmasi · Laboratorium · Logistik
-      </p>
+  </div>
+
+
+  <!-- PENUNJANG -->
+
+  <div class="card">
+
+    <h3>Penunjang</h3>
+
+    <p class="muted">
+      Farmasi, laboratorium dan logistik.
+    </p>
+
+    <div class="grid">
+
+      <a class="menu-card" href="pages/farmasi.html">
+        <strong>💊 Farmasi</strong>
+        <span>Resep dan pelayanan obat</span>
+      </a>
+
+      <a class="menu-card" href="pages/lab.html">
+        <strong>🔬 Laboratorium</strong>
+        <span>Pemeriksaan dan hasil laboratorium</span>
+      </a>
+
+      <a class="menu-card" href="pages/logistik.html">
+        <strong>📦 Logistik</strong>
+        <span>Persediaan dan pergerakan stok</span>
+      </a>
+
     </div>
 
-    <div class="card">
-      <h3>Manajemen</h3>
-      <p class="muted">
-        Kesmas · Jejaring · Mutu · Laporan
-      </p>
+  </div>
+
+
+  <!-- MANAJEMEN -->
+
+  <div class="card">
+
+    <h3>Manajemen</h3>
+
+    <p class="muted">
+      Program kesehatan masyarakat, jejaring, mutu dan laporan.
+    </p>
+
+    <div class="grid">
+
+      <a class="menu-card" href="pages/program-kesmas.html">
+        <strong>🌐 Program Kesmas</strong>
+        <span>Program kesehatan masyarakat</span>
+      </a>
+
+      <a class="menu-card" href="pages/jejaring.html">
+        <strong>🤝 Jejaring</strong>
+        <span>Pustu, Posyandu dan jejaring pelayanan</span>
+      </a>
+
+      <a class="menu-card" href="pages/mutu.html">
+        <strong>📊 Mutu</strong>
+        <span>Mutu dan keselamatan pelayanan</span>
+      </a>
+
+      <a class="menu-card" href="pages/laporan.html">
+        <strong>📑 Laporan</strong>
+        <span>Pelaporan dan indikator</span>
+      </a>
+
     </div>
 
-    <div class="card">
-      <h3>Integrasi</h3>
-      <p class="muted">
-        SATUSEHAT · BPJS
-      </p>
+  </div>
+
+
+  <!-- INTEGRASI -->
+
+  <div class="card">
+
+    <h3>Integrasi</h3>
+
+    <p class="muted">
+      Integrasi sistem eksternal.
+    </p>
+
+    <div class="grid">
+
+      <a class="menu-card" href="pages/satusehat.html">
+        <strong>🔗 SATUSEHAT</strong>
+        <span>Integrasi SATUSEHAT</span>
+      </a>
+
+      <a class="menu-card" href="pages/bpjs.html">
+        <strong>🏛️ BPJS</strong>
+        <span>Integrasi dan layanan BPJS</span>
+      </a>
+
     </div>
 
   </div>
 
 </main>
 
-<script src="assets/js/dashboard.js?v=2"></script>
+
+<script src="assets/js/dashboard.js?v=3"></script>
 
 </body>
 </html>
-```
