@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Login | Puskesmas Meritai</title>
+<link rel="stylesheet" href="assets/css/app.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/config.js"></script>
+</head>
+<body>
+<main>
+  <div class="card">
+    <h1>🏥 Puskesmas Meritai</h1>
+    <p class="muted">Sistem Informasi Puskesmas — Fresh Start</p>
+    <form id="loginForm">
+      <label>Email</label>
+      <input id="email" type="email" required autocomplete="username">
+      <label>Password</label>
+      <input id="password" type="password" required autocomplete="current-password">
+      <button type="submit">Masuk</button>
+    </form>
+    <p id="msg" class="error"></p>
+  </div>
+</main>
+<script src="assets/js/login.js"></script>
+</body>
+</html>

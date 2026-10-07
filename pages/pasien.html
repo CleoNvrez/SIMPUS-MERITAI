@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <title>Administrasi Pasien | Puskesmas Meritai</title>
+
+  <link rel="stylesheet" href="../assets/css/app.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/config.js"></script>
+  <script src="../assets/js/auth.js"></script>
+</head>
+
+<body>
+
+<header>
+  <strong>🏥 Puskesmas Meritai</strong>
+
+  <button
+    style="max-width:120px;float:right;margin:0"
+    onclick="logout()"
+  >
+    Keluar
+  </button>
+</header>
+
+<main>
+
+  <!-- HEADER MODUL -->
+  <div class="card">
+    <h2>Administrasi Pasien</h2>
+
+    <p class="muted">
+      Master identitas pasien Puskesmas Meritai.
+    </p>
+
+    <button
+      type="button"
+      id="btnNewPatient"
+      style="max-width:180px"
+    >
+      + Pasien Baru
+    </button>
+  </div>
+
+
+  <!-- PENCARIAN -->
+  <div class="card">
+
+    <h3>Cari Pasien</h3>
+
+    <div class="grid">
+
+      <div>
+        <label for="searchPatient">
+          Nama / No. RM / NIK / No. HP
+        </label>
+
+        <input
+          id="searchPatient"
+          type="text"
+          autocomplete="off"
+          placeholder="Masukkan minimal 2 karakter"
+        >
+      </div>
+
+      <div style="display:flex;align-items:end">
+        <button
+          type="button"
+          id="btnSearch"
+        >
+          Cari Pasien
+        </button>
+      </div>
+
+    </div>
+
+    <p id="searchMessage" class="muted"></p>
+
+  </div>
+
+
+  <!-- HASIL PENCARIAN -->
+  <div class="card">
+
+    <h3>Daftar Pasien</h3>
+
+    <div id="patientList">
+      <p class="muted">
+        Belum ada pencarian.
+      </p>
+    </div>
+
+  </div>
+
+
+  <!-- FORM PASIEN -->
+  <div
+    class="card"
+    id="patientFormCard"
+    style="display:none"
+  >
+
+    <h3 id="formTitle">Pasien Baru</h3>
+
+    <p class="muted">
+      Nomor rekam medis akan dibuat otomatis oleh database.
+    </p>
+
+    <form id="patientForm">
+
+      <div class="grid">
+
+        <div>
+          <label for="fullName">Nama Lengkap *</label>
+
+          <input
+            id="fullName"
+            type="text"
+            required
+            maxlength="150"
+          >
+        </div>
+
+
+        <div>
+          <label for="nationalId">NIK</label>
+
+          <input
+            id="nationalId"
+            type="text"
+            inputmode="numeric"
+            maxlength="16"
+            placeholder="16 digit"
+          >
+        </div>
+
+
+        <div>
+          <label for="dateOfBirth">Tanggal Lahir</label>
+
+          <input
+            id="dateOfBirth"
+            type="date"
+          >
+        </div>
+
+
+        <div>
+          <label for="placeOfBirth">Tempat Lahir</label>
+
+          <input
+            id="placeOfBirth"
+            type="text"
+            maxlength="100"
+          >
+        </div>
+
+
+        <div>
+          <label for="sex">Jenis Kelamin *</label>
+
+          <select id="sex" required>
+            <option value="UNKNOWN">Tidak diketahui</option>
+            <option value="MALE">Laki-laki</option>
+            <option value="FEMALE">Perempuan</option>
+          </select>
+        </div>
+
+
+        <div>
+          <label for="bloodType">Golongan Darah</label>
+
+          <select id="bloodType">
+            <option value="">-- Pilih --</option>
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="AB">AB</option>
+            <option value="O">O</option>
+          </select>
+        </div>
+
+
+        <div>
+          <label for="maritalStatus">Status Perkawinan</label>
+
+          <input
+            id="maritalStatus"
+            type="text"
+            maxlength="50"
+          >
+        </div>
+
+
+        <div>
+          <label for="education">Pendidikan</label>
+
+          <input
+            id="education"
+            type="text"
+            maxlength="100"
+          >
+        </div>
+
+
+        <div>
+          <label for="occupation">Pekerjaan</label>
+
+          <input
+            id="occupation"
+            type="text"
+            maxlength="100"
+          >
+        </div>
+
+
+        <div>
+          <label for="phone">No. HP</label>
+
+          <input
+            id="phone"
+            type="tel"
+            maxlength="30"
+          >
+        </div>
+
+
+        <div>
+          <label for="email">Email</label>
+
+          <input
+            id="email"
+            type="email"
+            maxlength="150"
+          >
+        </div>
+
+
+        <div>
+          <label for="religion">Agama</label>
+
+          <input
+            id="religion"
+            type="text"
+            maxlength="50"
+          >
+        </div>
+
+      </div>
+
+
+      <div style="margin-top:16px">
+
+        <label for="address">Alamat</label>
+
+        <textarea
+          id="address"
+          rows="3"
+          maxlength="1000"
+        ></textarea>
+
+      </div>
+
+
+      <div class="grid">
+
+        <div>
+          <label for="village">Kelurahan / Desa</label>
+
+          <input
+            id="village"
+            type="text"
+            maxlength="100"
+          >
+        </div>
+
+
+        <div>
+          <label for="district">Kecamatan</label>
+
+          <input
+            id="district"
+            type="text"
+            maxlength="100"
+          >
+        </div>
+
+
+        <div>
+          <label for="regency">Kabupaten / Kota</label>
+
+          <input
+            id="regency"
+            type="text"
+            maxlength="100"
+          >
+        </div>
+
+
+        <div>
+          <label for="province">Provinsi</label>
+
+          <input
+            id="province"
+            type="text"
+            maxlength="100"
+          >
+        </div>
+
+
+        <div>
+          <label for="postalCode">Kode Pos</label>
+
+          <input
+            id="postalCode"
+            type="text"
+            maxlength="10"
+          >
+        </div>
+
+      </div>
+
+
+      <hr style="margin:24px 0">
+
+
+      <h4>Kontak Darurat</h4>
+
+      <div class="grid">
+
+        <div>
+          <label for="emergencyContactName">
+            Nama Kontak
+          </label>
+
+          <input
+            id="emergencyContactName"
+            type="text"
+            maxlength="150"
+          >
+        </div>
+
+
+        <div>
+          <label for="emergencyContactPhone">
+            No. HP Kontak
+          </label>
+
+          <input
+            id="emergencyContactPhone"
+            type="tel"
+            maxlength="30"
+          >
+        </div>
+
+
+        <div>
+          <label for="emergencyContactRelationship">
+            Hubungan
+          </label>
+
+          <input
+            id="emergencyContactRelationship"
+            type="text"
+            maxlength="50"
+          >
+        </div>
+
+      </div>
+
+
+      <div style="margin-top:16px">
+
+        <label for="notes">Catatan</label>
+
+        <textarea
+          id="notes"
+          rows="3"
+          maxlength="2000"
+        ></textarea>
+
+      </div>
+
+
+      <p id="formMessage"></p>
+
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+
+        <button
+          type="submit"
+          id="btnSavePatient"
+          style="max-width:180px"
+        >
+          Simpan Pasien
+        </button>
+
+        <button
+          type="button"
+          id="btnCancelPatient"
+          style="max-width:180px"
+        >
+          Batal
+        </button>
+
+      </div>
+
+    </form>
+
+  </div>
+
+
+  <!-- DETAIL PASIEN -->
+  <div
+    class="card"
+    id="patientDetailCard"
+    style="display:none"
+  >
+
+    <h3>Detail Pasien</h3>
+
+    <div id="patientDetail"></div>
+
+  </div>
+
+</main>
+
+
+<script src="../assets/js/pasien.js"></script>
+
+</body>
+</html>
