@@ -1,1 +1,261 @@
-<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Rekam Medis Elektronik | Puskesmas Meritai</title><link rel="stylesheet" href="../assets/css/app.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../assets/js/config.js"></script><script src="../assets/js/auth.js"></script></head><body><header><strong>Puskesmas Meritai</strong><button style="max-width:120px;float:right;margin:0" onclick="logout()">Keluar</button></header><main><div class="card"><h2>Rekam Medis Elektronik</h2><p class="muted">Modul Rekam Medis Elektronik — Fresh Start V2.</p></div></main></body></html>
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <title>Rekam Medis Elektronik | Puskesmas Meritai</title>
+
+  <link rel="stylesheet" href="../assets/css/app.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/config.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/rme.js" defer></script>
+</head>
+
+<body>
+
+<header>
+  <strong>Puskesmas Meritai</strong>
+
+  <button
+    style="max-width:120px;float:right;margin:0"
+    onclick="logout()"
+  >
+    Keluar
+  </button>
+</header>
+
+<main>
+
+  <!-- JUDUL -->
+  <div class="card">
+    <h2>Rekam Medis Elektronik</h2>
+
+    <p class="muted">
+      Modul pelayanan Rekam Medis Elektronik berbasis Encounter.
+    </p>
+  </div>
+
+
+  <!-- PILIH PENDAFTARAN -->
+  <div class="card">
+
+    <h3>Pendaftaran Hari Ini</h3>
+
+    <p class="muted">
+      Pilih pasien yang akan mulai mendapatkan pelayanan.
+    </p>
+
+    <div style="overflow-x:auto">
+
+      <table style="width:100%">
+        <thead>
+          <tr>
+            <th>No. Registrasi</th>
+            <th>No. RM</th>
+            <th>Nama Pasien</th>
+            <th>Unit</th>
+            <th>Jenis Kunjungan</th>
+            <th>Status</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+
+        <tbody id="registrationTable">
+          <tr>
+            <td colspan="7" class="muted">
+              Memuat data pendaftaran...
+            </td>
+          </tr>
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+
+  <!-- ENCOUNTER AKTIF -->
+  <div class="card">
+
+    <h3>Encounter Pelayanan</h3>
+
+    <div id="encounterEmpty">
+
+      <p class="muted">
+        Belum ada Encounter yang dipilih.
+      </p>
+
+    </div>
+
+
+    <div id="encounterPanel" style="display:none">
+
+      <div style="
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+        gap:12px;
+        margin-bottom:18px;
+      ">
+
+        <div>
+          <small class="muted">Nomor Encounter</small>
+          <strong id="encounterNumber">-</strong>
+        </div>
+
+        <div>
+          <small class="muted">Pasien</small>
+          <strong id="encounterPatient">-</strong>
+        </div>
+
+        <div>
+          <small class="muted">No. RM</small>
+          <strong id="encounterRM">-</strong>
+        </div>
+
+        <div>
+          <small class="muted">Unit Pelayanan</small>
+          <strong id="encounterUnit">-</strong>
+        </div>
+
+        <div>
+          <small class="muted">Status</small>
+          <strong id="encounterStatus">-</strong>
+        </div>
+
+      </div>
+
+
+      <div style="
+        display:flex;
+        gap:8px;
+        flex-wrap:wrap;
+        margin-bottom:18px;
+      ">
+
+        <button id="startEncounterBtn">
+          Mulai / Buka Encounter
+        </button>
+
+        <button
+          id="refreshEncounterBtn"
+          type="button"
+        >
+          Refresh
+        </button>
+
+      </div>
+
+
+      <!-- PESERTA -->
+      <div>
+
+        <h4>Peserta Pelayanan</h4>
+
+        <div style="overflow-x:auto">
+
+          <table style="width:100%">
+
+            <thead>
+              <tr>
+                <th>Peran</th>
+                <th>Profesi</th>
+                <th>Unit</th>
+                <th>Utama</th>
+                <th>Mulai</th>
+              </tr>
+            </thead>
+
+            <tbody id="participantTable">
+
+              <tr>
+                <td colspan="5" class="muted">
+                  Belum ada peserta pelayanan.
+                </td>
+              </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+
+      <!-- AREA RME KLINIS -->
+      <div
+        id="clinicalArea"
+        style="
+          margin-top:24px;
+          padding:16px;
+          border:1px solid #e5e7eb;
+          border-radius:10px;
+          background:#f8fafc;
+        "
+      >
+
+        <h4>Komponen Rekam Medis</h4>
+
+        <p class="muted">
+          Komponen klinis akan tersedia setelah Encounter aktif.
+        </p>
+
+        <div style="
+          display:grid;
+          grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+          gap:10px;
+        ">
+
+          <div class="card">
+            Anamnesis
+          </div>
+
+          <div class="card">
+            Vital Sign
+          </div>
+
+          <div class="card">
+            Pemeriksaan Fisik
+          </div>
+
+          <div class="card">
+            Diagnosis
+          </div>
+
+          <div class="card">
+            Tindakan
+          </div>
+
+          <div class="card">
+            Rujukan
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- PESAN SISTEM -->
+  <div class="card">
+
+    <div
+      id="msg"
+      class="muted"
+    >
+      Memuat modul RME...
+    </div>
+
+  </div>
+
+</main>
+
+</body>
+</html>
