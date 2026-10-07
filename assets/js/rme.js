@@ -1,11 +1,15 @@
 // SIMPUS MERITAI — Fresh Start V2
-// Modul Rekam Medis Elektronik — Encounter + Anamnesis + Vital Sign
+// Modul Rekam Medis Elektronik
+// Encounter + Anamnesis + Vital Sign + Pemeriksaan Fisik
 
 let currentProfile = null;
 let selectedRegistration = null;
 let currentEncounter = null;
 let currentAnamnesis = null;
 let currentVital = null;
+
+let currentPhysicalExams = [];
+let editingPhysicalExamId = null;
 
 
 // ============================================================
@@ -73,6 +77,15 @@ function bindEvents() {
 
   const heightInput =
     document.getElementById("heightCm");
+
+  const physicalExamForm =
+    document.getElementById("physicalExamForm");
+
+  const reloadPhysicalExamButton =
+    document.getElementById("reloadPhysicalExamBtn");
+
+  const cancelPhysicalExamEditButton =
+    document.getElementById("cancelPhysicalExamEditBtn");
 
 
   if (refreshButton) {
@@ -194,6 +207,53 @@ function bindEvents() {
     heightInput.addEventListener(
       "input",
       calculateBMI
+    );
+
+  }
+
+
+  if (physicalExamForm) {
+
+    physicalExamForm.addEventListener(
+      "submit",
+      savePhysicalExam
+    );
+
+  }
+
+
+  if (reloadPhysicalExamButton) {
+
+    reloadPhysicalExamButton.addEventListener(
+      "click",
+      async () => {
+
+        if (!currentEncounter) {
+
+          setMessage(
+            "Belum ada Encounter aktif.",
+            true
+          );
+
+          return;
+
+        }
+
+        await loadPhysicalExams(
+          currentEncounter.id
+        );
+
+      }
+    );
+
+  }
+
+
+  if (cancelPhysicalExamEditButton) {
+
+    cancelPhysicalExamEditButton.addEventListener(
+      "click",
+      cancelPhysicalExamEdit
     );
 
   }
@@ -398,11 +458,18 @@ async function selectRegistration(
   currentAnamnesis = null;
   currentVital = null;
 
+  currentPhysicalExams = [];
+  editingPhysicalExamId = null;
+
   showEncounterPanel();
 
   clearAnamnesisForm();
 
   clearVitalForm();
+
+  clearPhysicalExamForm();
+
+  renderPhysicalExamTable();
 
   setMessage(
     `Pendaftaran ${registration.registration_number} dipilih.`
@@ -475,10 +542,18 @@ async function loadEncounterForRegistration(
     currentEncounter = null;
     currentAnamnesis = null;
     currentVital = null;
+    currentPhysicalExams = [];
+    editingPhysicalExamId = null;
 
     updateEncounterDisplay();
+
     clearAnamnesisForm();
+
     clearVitalForm();
+
+    clearPhysicalExamForm();
+
+    renderPhysicalExamTable();
 
     setMessage(
       "Pendaftaran ini belum memiliki Encounter."
@@ -507,6 +582,11 @@ async function loadEncounterForRegistration(
 
 
   await loadVital(
+    data.id
+  );
+
+
+  await loadPhysicalExams(
     data.id
   );
 
@@ -643,6 +723,11 @@ async function createEncounter() {
 
 
     await loadVital(
+      data.id
+    );
+
+
+    await loadPhysicalExams(
       data.id
     );
 
@@ -1500,6 +1585,840 @@ async function saveVital(
   } finally {
 
     button.disabled = false;
+
+  }
+
+}
+
+
+// ============================================================
+// LOAD PEMERIKSAAN FISIK
+// ============================================================
+
+async function loadPhysicalExams(
+  encounterId
+) {
+
+  currentPhysicalExams = [];
+  editingPhysicalExamId = null;
+
+  clearPhysicalExamForm();
+
+
+  const {
+    data,
+    error
+  } = await sb
+    .from("clinical_physical_exams")
+    .select(`
+      id,
+      encounter_id,
+      examined_at,
+      body_system,
+      body_region,
+      finding,
+      normal_abnormal,
+      additional_notes,
+      recorded_by,
+      created_by,
+      updated_by,
+      created_at,
+      updated_at
+    `)
+    .eq("encounter_id", encounterId)
+    .order("examined_at", {
+      ascending: false
+    })
+    .order("created_at", {
+      ascending: false
+    });
+
+
+  if (error) {
+
+    console.error(error);
+
+    setMessage(
+      "Gagal memuat Pemeriksaan Fisik.",
+      true
+    );
+
+    renderPhysicalExamTable();
+
+    return;
+
+  }
+
+
+  currentPhysicalExams =
+    data || [];
+
+
+  renderPhysicalExamTable();
+
+
+  if (
+    currentPhysicalExams.length === 0
+  ) {
+
+    updatePhysicalExamInfo(
+      "Belum ada pemeriksaan fisik tersimpan."
+    );
+
+  } else {
+
+    updatePhysicalExamInfo(
+      `${currentPhysicalExams.length} temuan pemeriksaan fisik tersimpan.`
+    );
+
+  }
+
+}
+
+
+// ============================================================
+// SAVE / UPDATE PEMERIKSAAN FISIK
+// ============================================================
+
+async function savePhysicalExam(
+  event
+) {
+
+  event.preventDefault();
+
+
+  if (!currentEncounter) {
+
+    setMessage(
+      "Pemeriksaan Fisik tidak dapat disimpan karena belum ada Encounter.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  if (
+    currentEncounter.status !==
+    "IN_PROGRESS"
+  ) {
+
+    setMessage(
+      "Pemeriksaan Fisik hanya dapat dicatat pada Encounter yang masih IN_PROGRESS.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  const bodySystem =
+    getValue("bodySystem");
+
+  const finding =
+    getValue("physicalFinding");
+
+
+  if (!bodySystem) {
+
+    setMessage(
+      "Sistem tubuh wajib dipilih.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  if (!finding) {
+
+    setMessage(
+      "Temuan pemeriksaan wajib diisi.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  const button =
+    document.getElementById(
+      "savePhysicalExamBtn"
+    );
+
+
+  button.disabled = true;
+
+
+  try {
+
+    const userId =
+      currentProfile.user_id;
+
+
+    const examinedAt =
+      getDateTimeValue("examinedAt");
+
+
+    const physicalExamData = {
+
+      encounter_id:
+        currentEncounter.id,
+
+      examined_at:
+        examinedAt || new Date().toISOString(),
+
+      body_system:
+        bodySystem,
+
+      body_region:
+        getValue("bodyRegion"),
+
+      finding:
+        finding,
+
+      normal_abnormal:
+        getValue("normalAbnormal"),
+
+      additional_notes:
+        getValue("physicalAdditionalNotes")
+
+    };
+
+
+    // --------------------------------------------------------
+    // UPDATE TEMUAN YANG SUDAH ADA
+    // --------------------------------------------------------
+
+    if (editingPhysicalExamId) {
+
+      physicalExamData.updated_by =
+        userId;
+
+
+      const {
+        data,
+        error
+      } = await sb
+        .from("clinical_physical_exams")
+        .update(physicalExamData)
+        .eq("id", editingPhysicalExamId)
+        .eq("encounter_id", currentEncounter.id)
+        .select()
+        .single();
+
+
+      if (error) {
+        throw error;
+      }
+
+
+      setMessage(
+        "Pemeriksaan Fisik berhasil diperbarui."
+      );
+
+
+      await loadPhysicalExams(
+        currentEncounter.id
+      );
+
+
+      return;
+
+    }
+
+
+    // --------------------------------------------------------
+    // INSERT TEMUAN BARU
+    // --------------------------------------------------------
+
+    physicalExamData.recorded_by =
+      userId;
+
+    physicalExamData.created_by =
+      userId;
+
+
+    const {
+      data,
+      error
+    } = await sb
+      .from("clinical_physical_exams")
+      .insert(physicalExamData)
+      .select()
+      .single();
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    setMessage(
+      "Pemeriksaan Fisik berhasil ditambahkan."
+    );
+
+
+    currentPhysicalExams = [
+      data,
+      ...currentPhysicalExams
+    ];
+
+
+    editingPhysicalExamId = null;
+
+
+    clearPhysicalExamForm();
+
+
+    renderPhysicalExamTable();
+
+
+    updatePhysicalExamInfo(
+      `${currentPhysicalExams.length} temuan pemeriksaan fisik tersimpan.`
+    );
+
+  } catch (error) {
+
+    console.error(error);
+
+    setMessage(
+      "Pemeriksaan Fisik gagal disimpan: " +
+      (error.message || "kesalahan tidak diketahui"),
+      true
+    );
+
+  } finally {
+
+    button.disabled = false;
+
+  }
+
+}
+
+
+// ============================================================
+// EDIT PEMERIKSAAN FISIK
+// ============================================================
+
+function editPhysicalExam(
+  id
+) {
+
+  if (!currentEncounter) {
+
+    setMessage(
+      "Belum ada Encounter aktif.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  if (
+    currentEncounter.status !==
+    "IN_PROGRESS"
+  ) {
+
+    setMessage(
+      "Pemeriksaan Fisik tidak dapat diubah karena Encounter sudah tidak IN_PROGRESS.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  const item =
+    currentPhysicalExams.find(
+      exam => exam.id === id
+    );
+
+
+  if (!item) {
+
+    setMessage(
+      "Data Pemeriksaan Fisik tidak ditemukan.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  editingPhysicalExamId =
+    item.id;
+
+
+  setInputValue(
+    "examinedAt",
+    toDateTimeLocal(item.examined_at)
+  );
+
+
+  setInputValue(
+    "bodySystem",
+    item.body_system
+  );
+
+
+  setInputValue(
+    "bodyRegion",
+    item.body_region
+  );
+
+
+  setInputValue(
+    "physicalFinding",
+    item.finding
+  );
+
+
+  setInputValue(
+    "normalAbnormal",
+    item.normal_abnormal
+  );
+
+
+  setInputValue(
+    "physicalAdditionalNotes",
+    item.additional_notes
+  );
+
+
+  const saveButton =
+    document.getElementById(
+      "savePhysicalExamBtn"
+    );
+
+
+  const cancelButton =
+    document.getElementById(
+      "cancelPhysicalExamEditBtn"
+    );
+
+
+  if (saveButton) {
+
+    saveButton.textContent =
+      "Simpan Perubahan";
+
+  }
+
+
+  if (cancelButton) {
+
+    cancelButton.style.display =
+      "inline-block";
+
+  }
+
+
+  updatePhysicalExamInfo(
+    `Sedang mengubah temuan pemeriksaan ${formatDateTime(item.examined_at)}.`
+  );
+
+
+  const findingInput =
+    document.getElementById(
+      "physicalFinding"
+    );
+
+
+  if (findingInput) {
+
+    findingInput.focus();
+
+  }
+
+}
+
+
+// ============================================================
+// CANCEL EDIT PEMERIKSAAN FISIK
+// ============================================================
+
+function cancelPhysicalExamEdit() {
+
+  editingPhysicalExamId = null;
+
+  clearPhysicalExamForm();
+
+
+  updatePhysicalExamInfo(
+    currentPhysicalExams.length
+      ? `${currentPhysicalExams.length} temuan pemeriksaan fisik tersimpan.`
+      : "Belum ada pemeriksaan fisik tersimpan."
+  );
+
+}
+
+
+// ============================================================
+// RENDER PEMERIKSAAN FISIK
+// ============================================================
+
+function renderPhysicalExamTable() {
+
+  const table =
+    document.getElementById(
+      "physicalExamTable"
+    );
+
+
+  if (!table) {
+    return;
+  }
+
+
+  if (
+    !currentPhysicalExams ||
+    currentPhysicalExams.length === 0
+  ) {
+
+    table.innerHTML = `
+      <tr>
+        <td colspan="7" class="muted">
+          Belum ada temuan pemeriksaan fisik.
+        </td>
+      </tr>
+    `;
+
+    return;
+
+  }
+
+
+  table.innerHTML = "";
+
+
+  currentPhysicalExams.forEach(
+    exam => {
+
+      const row =
+        document.createElement("tr");
+
+
+      const systemLabel =
+        getPhysicalSystemLabel(
+          exam.body_system
+        );
+
+
+      const statusLabel =
+        getPhysicalStatusLabel(
+          exam.normal_abnormal
+        );
+
+
+      row.innerHTML = `
+
+        <td>
+          ${escapeHtml(
+            formatDateTime(
+              exam.examined_at
+            )
+          )}
+        </td>
+
+        <td>
+          ${escapeHtml(
+            systemLabel
+          )}
+        </td>
+
+        <td>
+          ${escapeHtml(
+            exam.body_region || "-"
+          )}
+        </td>
+
+        <td>
+          ${escapeHtml(
+            statusLabel
+          )}
+        </td>
+
+        <td style="white-space:pre-wrap">
+          ${escapeHtml(
+            exam.finding || "-"
+          )}
+        </td>
+
+        <td style="white-space:pre-wrap">
+          ${escapeHtml(
+            exam.additional_notes || "-"
+          )}
+        </td>
+
+        <td>
+
+          <button
+            type="button"
+            class="edit-physical-exam"
+          >
+            Ubah
+          </button>
+
+        </td>
+
+      `;
+
+
+      const editButton =
+        row.querySelector(
+          ".edit-physical-exam"
+        );
+
+
+      if (editButton) {
+
+        editButton.addEventListener(
+          "click",
+          () => {
+
+            editPhysicalExam(
+              exam.id
+            );
+
+          }
+        );
+
+      }
+
+
+      table.appendChild(row);
+
+    }
+  );
+
+}
+
+
+// ============================================================
+// CLEAR PEMERIKSAAN FISIK FORM
+// ============================================================
+
+function clearPhysicalExamForm() {
+
+  const fields = [
+
+    "bodySystem",
+    "bodyRegion",
+    "physicalFinding",
+    "normalAbnormal",
+    "physicalAdditionalNotes"
+
+  ];
+
+
+  fields.forEach(
+    id => {
+
+      const element =
+        document.getElementById(id);
+
+
+      if (element) {
+
+        element.value = "";
+
+      }
+
+    }
+  );
+
+
+  setDefaultExaminedAt();
+
+
+  editingPhysicalExamId = null;
+
+
+  const saveButton =
+    document.getElementById(
+      "savePhysicalExamBtn"
+    );
+
+
+  const cancelButton =
+    document.getElementById(
+      "cancelPhysicalExamEditBtn"
+    );
+
+
+  if (saveButton) {
+
+    saveButton.textContent =
+      "Tambah Temuan";
+
+  }
+
+
+  if (cancelButton) {
+
+    cancelButton.style.display =
+      "none";
+
+  }
+
+}
+
+
+// ============================================================
+// DEFAULT WAKTU PEMERIKSAAN
+// ============================================================
+
+function setDefaultExaminedAt() {
+
+  const element =
+    document.getElementById(
+      "examinedAt"
+    );
+
+
+  if (!element) {
+    return;
+  }
+
+
+  const now =
+    new Date();
+
+
+  const offset =
+    now.getTimezoneOffset();
+
+
+  const localDate =
+    new Date(
+      now.getTime() -
+      offset * 60000
+    );
+
+
+  element.value =
+    localDate
+      .toISOString()
+      .slice(0, 16);
+
+}
+
+
+// ============================================================
+// LABEL SISTEM TUBUH
+// ============================================================
+
+function getPhysicalSystemLabel(
+  value
+) {
+
+  const labels = {
+
+    GENERAL:
+      "Umum",
+
+    HEAD_NECK:
+      "Kepala & Leher",
+
+    EYE:
+      "Mata",
+
+    ENT:
+      "THT",
+
+    RESPIRATORY:
+      "Respirasi",
+
+    CARDIOVASCULAR:
+      "Kardiovaskular",
+
+    ABDOMEN:
+      "Abdomen",
+
+    GENITOURINARY:
+      "Genitourinaria",
+
+    MUSCULOSKELETAL:
+      "Muskuloskeletal",
+
+    NEUROLOGICAL:
+      "Neurologis",
+
+    SKIN:
+      "Kulit",
+
+    EXTREMITIES:
+      "Ekstremitas",
+
+    OTHER:
+      "Lainnya"
+
+  };
+
+
+  return labels[value] || value || "-";
+
+}
+
+
+// ============================================================
+// LABEL STATUS PEMERIKSAAN
+// ============================================================
+
+function getPhysicalStatusLabel(
+  value
+) {
+
+  if (
+    value === "NORMAL"
+  ) {
+
+    return "Normal";
+
+  }
+
+
+  if (
+    value === "ABNORMAL"
+  ) {
+
+    return "Abnormal";
+
+  }
+
+
+  return value || "-";
+
+}
+
+
+// ============================================================
+// UPDATE INFO PEMERIKSAAN FISIK
+// ============================================================
+
+function updatePhysicalExamInfo(
+  message
+) {
+
+  const element =
+    document.getElementById(
+      "physicalExamInfo"
+    );
+
+
+  if (element) {
+
+    element.textContent =
+      message;
 
   }
 
