@@ -1,7 +1,9 @@
+rme.js
+
 // SIMPUS MERITAI — Fresh Start V2
 // Modul Rekam Medis Elektronik
 // Encounter + Anamnesis + Vital Sign + Pemeriksaan Fisik
-// + Diagnosis + Tindakan
+// + Diagnosis + Tindakan + Rujukan
 
 let currentProfile = null;
 let selectedRegistration = null;
@@ -17,6 +19,9 @@ let editingDiagnosisId = null;
 
 let currentActions = [];
 let editingActionId = null;
+
+let currentReferrals = [];
+let editingReferralId = null;
 
 
 // ============================================================
@@ -111,6 +116,15 @@ function bindEvents() {
 
   const cancelActionEditButton =
     document.getElementById("cancelActionEditBtn");
+
+  const referralForm =
+    document.getElementById("referralForm");
+
+  const reloadReferralButton =
+    document.getElementById("reloadReferralBtn");
+
+  const cancelReferralEditButton =
+    document.getElementById("cancelReferralEditBtn");
 
 
   // ==========================================================
@@ -401,6 +415,57 @@ function bindEvents() {
 
   }
 
+
+  // ==========================================================
+  // RUJUKAN
+  // ==========================================================
+
+  if (referralForm) {
+
+    referralForm.addEventListener(
+      "submit",
+      saveReferral
+    );
+
+  }
+
+
+  if (reloadReferralButton) {
+
+    reloadReferralButton.addEventListener(
+      "click",
+      async () => {
+
+        if (!currentEncounter) {
+
+          setMessage(
+            "Belum ada Encounter aktif.",
+            true
+          );
+
+          return;
+
+        }
+
+        await loadReferrals(
+          currentEncounter.id
+        );
+
+      }
+    );
+
+  }
+
+
+  if (cancelReferralEditButton) {
+
+    cancelReferralEditButton.addEventListener(
+      "click",
+      cancelReferralEdit
+    );
+
+  }
+
 }
 
 
@@ -610,6 +675,9 @@ async function selectRegistration(
   currentActions = [];
   editingActionId = null;
 
+  currentReferrals = [];
+  editingReferralId = null;
+
   showEncounterPanel();
 
   clearAnamnesisForm();
@@ -622,11 +690,15 @@ async function selectRegistration(
 
   clearActionForm();
 
+  clearReferralForm();
+
   renderPhysicalExamTable();
 
   renderDiagnosisTable();
 
   renderActionTable();
+
+  renderReferralTable();
 
   setMessage(
     `Pendaftaran ${registration.registration_number} dipilih.`
@@ -709,6 +781,9 @@ async function loadEncounterForRegistration(
     currentActions = [];
     editingActionId = null;
 
+    currentReferrals = [];
+    editingReferralId = null;
+
     updateEncounterDisplay();
 
     clearAnamnesisForm();
@@ -721,11 +796,15 @@ async function loadEncounterForRegistration(
 
     clearActionForm();
 
+    clearReferralForm();
+
     renderPhysicalExamTable();
 
     renderDiagnosisTable();
 
     renderActionTable();
+
+    renderReferralTable();
 
     setMessage(
       "Pendaftaran ini belum memiliki Encounter."
@@ -769,6 +848,11 @@ async function loadEncounterForRegistration(
 
 
   await loadActions(
+    data.id
+  );
+
+
+  await loadReferrals(
     data.id
   );
 
@@ -920,6 +1004,11 @@ async function createEncounter() {
 
 
     await loadActions(
+      data.id
+    );
+
+
+    await loadReferrals(
       data.id
     );
 
@@ -3824,6 +3913,838 @@ function updateActionInfo(
   const element =
     document.getElementById(
       "actionInfo"
+    );
+
+
+  if (element) {
+
+    element.textContent =
+      message;
+
+  }
+
+}
+
+
+
+// ============================================================
+// RUJUKAN — LOAD
+// ============================================================
+
+async function loadReferrals(
+  encounterId
+) {
+
+  currentReferrals = [];
+  editingReferralId = null;
+
+  clearReferralForm();
+
+
+  const {
+    data,
+    error
+  } = await sb
+    .from("clinical_referrals")
+    .select(`
+      id,
+      encounter_id,
+      referral_type,
+      destination_facility_name,
+      destination_facility_code,
+      referral_reason,
+      clinical_summary,
+      referral_diagnosis,
+      patient_condition,
+      referral_number,
+      referral_status,
+      referred_at,
+      referred_by,
+      created_by,
+      updated_by,
+      created_at,
+      updated_at
+    `)
+    .eq("encounter_id", encounterId)
+    .order("referred_at", {
+      ascending: false
+    })
+    .order("created_at", {
+      ascending: false
+    });
+
+
+  if (error) {
+
+    console.error(error);
+
+    setMessage(
+      "Gagal memuat Rujukan.",
+      true
+    );
+
+    renderReferralTable();
+
+    return;
+
+  }
+
+
+  currentReferrals =
+    data || [];
+
+
+  renderReferralTable();
+
+
+  if (
+    currentReferrals.length === 0
+  ) {
+
+    updateReferralInfo(
+      "Belum ada rujukan tersimpan."
+    );
+
+  } else {
+
+    updateReferralInfo(
+      `${currentReferrals.length} rujukan tersimpan.`
+    );
+
+  }
+
+}
+
+
+// ============================================================
+// RUJUKAN — SAVE / UPDATE
+// ============================================================
+
+async function saveReferral(
+  event
+) {
+
+  event.preventDefault();
+
+
+  if (!currentEncounter) {
+
+    setMessage(
+      "Rujukan tidak dapat disimpan karena belum ada Encounter.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  if (
+    currentEncounter.status !==
+    "IN_PROGRESS"
+  ) {
+
+    setMessage(
+      "Rujukan hanya dapat dicatat pada Encounter yang masih IN_PROGRESS.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  const referralType =
+    getValue("referralType");
+
+  const destinationFacilityName =
+    getValue("destinationFacilityName");
+
+  const referralReason =
+    getValue("referralReason");
+
+
+  if (!referralType) {
+
+    setMessage(
+      "Jenis rujukan wajib dipilih.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  if (!destinationFacilityName) {
+
+    setMessage(
+      "Fasilitas tujuan wajib diisi.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  if (!referralReason) {
+
+    setMessage(
+      "Alasan / indikasi rujukan wajib diisi.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  const button =
+    document.getElementById(
+      "saveReferralBtn"
+    );
+
+
+  if (button) {
+    button.disabled = true;
+  }
+
+
+  try {
+
+    const userId =
+      currentProfile.user_id;
+
+
+    const referredAt =
+      getDateTimeValue("referredAt");
+
+
+    const referralData = {
+
+      encounter_id:
+        currentEncounter.id,
+
+      referral_type:
+        referralType,
+
+      destination_facility_name:
+        destinationFacilityName,
+
+      destination_facility_code:
+        getValue("destinationFacilityCode"),
+
+      referral_reason:
+        referralReason,
+
+      clinical_summary:
+        getValue("clinicalSummary"),
+
+      referral_diagnosis:
+        getValue("referralDiagnosis"),
+
+      patient_condition:
+        getValue("patientCondition"),
+
+      referral_number:
+        getValue("referralNumber"),
+
+      referral_status:
+        getValue("referralStatus") || "PLANNED",
+
+      referred_at:
+        referredAt || new Date().toISOString()
+
+    };
+
+
+    // --------------------------------------------------------
+    // UPDATE RUJUKAN
+    // --------------------------------------------------------
+
+    if (editingReferralId) {
+
+      referralData.updated_by =
+        userId;
+
+
+      const {
+        data,
+        error
+      } = await sb
+        .from("clinical_referrals")
+        .update(referralData)
+        .eq("id", editingReferralId)
+        .eq("encounter_id", currentEncounter.id)
+        .select()
+        .single();
+
+
+      if (error) {
+        throw error;
+      }
+
+
+      setMessage(
+        "Rujukan berhasil diperbarui."
+      );
+
+
+      await loadReferrals(
+        currentEncounter.id
+      );
+
+
+      return;
+
+    }
+
+
+    // --------------------------------------------------------
+    // INSERT RUJUKAN BARU
+    // --------------------------------------------------------
+
+    referralData.referred_by =
+      userId;
+
+    referralData.created_by =
+      userId;
+
+
+    const {
+      data,
+      error
+    } = await sb
+      .from("clinical_referrals")
+      .insert(referralData)
+      .select()
+      .single();
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    currentReferrals = [
+      data,
+      ...currentReferrals
+    ];
+
+
+    editingReferralId = null;
+
+
+    clearReferralForm();
+
+    renderReferralTable();
+
+
+    updateReferralInfo(
+      `${currentReferrals.length} rujukan tersimpan.`
+    );
+
+
+    setMessage(
+      "Rujukan berhasil ditambahkan."
+    );
+
+  } catch (error) {
+
+    console.error(error);
+
+    setMessage(
+      "Rujukan gagal disimpan: " +
+      (error.message || "kesalahan tidak diketahui"),
+      true
+    );
+
+  } finally {
+
+    if (button) {
+      button.disabled = false;
+    }
+
+  }
+
+}
+
+
+// ============================================================
+// RUJUKAN — EDIT
+// ============================================================
+
+function editReferral(
+  id
+) {
+
+  if (!currentEncounter) {
+
+    setMessage(
+      "Belum ada Encounter aktif.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  if (
+    currentEncounter.status !==
+    "IN_PROGRESS"
+  ) {
+
+    setMessage(
+      "Rujukan tidak dapat diubah karena Encounter sudah tidak IN_PROGRESS.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  const item =
+    currentReferrals.find(
+      referral => referral.id === id
+    );
+
+
+  if (!item) {
+
+    setMessage(
+      "Data Rujukan tidak ditemukan.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  editingReferralId =
+    item.id;
+
+
+  setInputValue(
+    "referredAt",
+    toDateTimeLocal(item.referred_at)
+  );
+
+  setInputValue(
+    "referralType",
+    item.referral_type
+  );
+
+  setInputValue(
+    "destinationFacilityName",
+    item.destination_facility_name
+  );
+
+  setInputValue(
+    "destinationFacilityCode",
+    item.destination_facility_code
+  );
+
+  setInputValue(
+    "referralReason",
+    item.referral_reason
+  );
+
+  setInputValue(
+    "clinicalSummary",
+    item.clinical_summary
+  );
+
+  setInputValue(
+    "referralDiagnosis",
+    item.referral_diagnosis
+  );
+
+  setInputValue(
+    "patientCondition",
+    item.patient_condition
+  );
+
+  setInputValue(
+    "referralNumber",
+    item.referral_number
+  );
+
+  setInputValue(
+    "referralStatus",
+    item.referral_status || "PLANNED"
+  );
+
+
+  const saveButton =
+    document.getElementById(
+      "saveReferralBtn"
+    );
+
+  const cancelButton =
+    document.getElementById(
+      "cancelReferralEditBtn"
+    );
+
+
+  if (saveButton) {
+
+    saveButton.textContent =
+      "Simpan Perubahan";
+
+  }
+
+
+  if (cancelButton) {
+
+    cancelButton.style.display =
+      "inline-block";
+
+  }
+
+
+  updateReferralInfo(
+    `Sedang mengubah rujukan ke ${item.destination_facility_name}.`
+  );
+
+
+  const typeInput =
+    document.getElementById(
+      "referralType"
+    );
+
+
+  if (typeInput) {
+
+    typeInput.focus();
+
+  }
+
+}
+
+
+// ============================================================
+// RUJUKAN — CANCEL EDIT
+// ============================================================
+
+function cancelReferralEdit() {
+
+  editingReferralId = null;
+
+  clearReferralForm();
+
+
+  updateReferralInfo(
+    currentReferrals.length
+      ? `${currentReferrals.length} rujukan tersimpan.`
+      : "Belum ada rujukan tersimpan."
+  );
+
+}
+
+
+// ============================================================
+// RUJUKAN — RENDER TABLE
+// ============================================================
+
+function renderReferralTable() {
+
+  const table =
+    document.getElementById(
+      "referralTable"
+    );
+
+
+  if (!table) {
+    return;
+  }
+
+
+  if (
+    !currentReferrals ||
+    currentReferrals.length === 0
+  ) {
+
+    table.innerHTML = `
+      <tr>
+        <td colspan="9" class="muted">
+          Belum ada rujukan tersimpan.
+        </td>
+      </tr>
+    `;
+
+    return;
+
+  }
+
+
+  table.innerHTML = "";
+
+
+  currentReferrals.forEach(
+    referral => {
+
+      const row =
+        document.createElement("tr");
+
+
+      row.innerHTML = `
+
+        <td>
+          ${escapeHtml(
+            formatDateTime(
+              referral.referred_at
+            )
+          )}
+        </td>
+
+        <td>
+          ${escapeHtml(
+            referral.referral_type || "-"
+          )}
+        </td>
+
+        <td style="white-space:pre-wrap">
+          ${escapeHtml(
+            referral.destination_facility_name || "-"
+          )}
+          ${
+            referral.destination_facility_code
+              ? `<br><small class="muted">Kode: ${escapeHtml(
+                  referral.destination_facility_code
+                )}</small>`
+              : ""
+          }
+        </td>
+
+        <td style="white-space:pre-wrap">
+          ${escapeHtml(
+            referral.referral_reason || "-"
+          )}
+        </td>
+
+        <td style="white-space:pre-wrap">
+          ${escapeHtml(
+            referral.referral_diagnosis || "-"
+          )}
+        </td>
+
+        <td>
+          ${escapeHtml(
+            referral.referral_number || "-"
+          )}
+        </td>
+
+        <td>
+          ${escapeHtml(
+            referral.referral_status || "-"
+          )}
+        </td>
+
+        <td>
+          ${escapeHtml(
+            referral.updated_at
+              ? formatDateTime(
+                  referral.updated_at
+                )
+              : formatDateTime(
+                  referral.created_at
+                )
+          )}
+        </td>
+
+        <td>
+
+          <button
+            type="button"
+            class="edit-referral"
+          >
+            Ubah
+          </button>
+
+        </td>
+
+      `;
+
+
+      const editButton =
+        row.querySelector(
+          ".edit-referral"
+        );
+
+
+      if (editButton) {
+
+        editButton.addEventListener(
+          "click",
+          () => {
+
+            editReferral(
+              referral.id
+            );
+
+          }
+        );
+
+      }
+
+
+      table.appendChild(row);
+
+    }
+  );
+
+}
+
+
+// ============================================================
+// RUJUKAN — CLEAR FORM
+// ============================================================
+
+function clearReferralForm() {
+
+  const fields = [
+
+    "destinationFacilityName",
+    "destinationFacilityCode",
+    "referralReason",
+    "clinicalSummary",
+    "referralDiagnosis",
+    "patientCondition",
+    "referralNumber"
+
+  ];
+
+
+  fields.forEach(
+    id => {
+
+      const element =
+        document.getElementById(id);
+
+
+      if (element) {
+
+        element.value = "";
+
+      }
+
+    }
+  );
+
+
+  const referralType =
+    document.getElementById(
+      "referralType"
+    );
+
+
+  if (referralType) {
+    referralType.value = "";
+  }
+
+
+  const referralStatus =
+    document.getElementById(
+      "referralStatus"
+    );
+
+
+  if (referralStatus) {
+    referralStatus.value = "PLANNED";
+  }
+
+
+  editingReferralId = null;
+
+
+  setDefaultReferredAt();
+
+
+  const saveButton =
+    document.getElementById(
+      "saveReferralBtn"
+    );
+
+
+  const cancelButton =
+    document.getElementById(
+      "cancelReferralEditBtn"
+    );
+
+
+  if (saveButton) {
+
+    saveButton.textContent =
+      "Tambah Rujukan";
+
+  }
+
+
+  if (cancelButton) {
+
+    cancelButton.style.display =
+      "none";
+
+  }
+
+}
+
+
+// ============================================================
+// RUJUKAN — DEFAULT WAKTU
+// ============================================================
+
+function setDefaultReferredAt() {
+
+  const element =
+    document.getElementById(
+      "referredAt"
+    );
+
+
+  if (!element) {
+    return;
+  }
+
+
+  const now =
+    new Date();
+
+
+  const offset =
+    now.getTimezoneOffset();
+
+
+  const localDate =
+    new Date(
+      now.getTime() -
+      offset * 60000
+    );
+
+
+  element.value =
+    localDate
+      .toISOString()
+      .slice(0, 16);
+
+}
+
+
+// ============================================================
+// RUJUKAN — INFO
+// ============================================================
+
+function updateReferralInfo(
+  message
+) {
+
+  const element =
+    document.getElementById(
+      "referralInfo"
     );
 
 
