@@ -1,6 +1,6 @@
 // SIMPUS MERITAI — Fresh Start V2
 // Modul Rekam Medis Elektronik
-// Encounter + Anamnesis + Vital Sign + Pemeriksaan Fisik
+// Encounter + Anamnesis + Vital Sign + Pemeriksaan Fisik + Diagnosis
 
 let currentProfile = null;
 let selectedRegistration = null;
@@ -10,6 +10,9 @@ let currentVital = null;
 
 let currentPhysicalExams = [];
 let editingPhysicalExamId = null;
+
+let currentDiagnoses = [];
+let editingDiagnosisId = null;
 
 
 // ============================================================
@@ -86,6 +89,15 @@ function bindEvents() {
 
   const cancelPhysicalExamEditButton =
     document.getElementById("cancelPhysicalExamEditBtn");
+
+  const diagnosisForm =
+    document.getElementById("diagnosisForm");
+
+  const reloadDiagnosisButton =
+    document.getElementById("reloadDiagnosisBtn");
+
+  const cancelDiagnosisEditButton =
+    document.getElementById("cancelDiagnosisEditBtn");
 
 
   if (refreshButton) {
@@ -254,6 +266,57 @@ function bindEvents() {
     cancelPhysicalExamEditButton.addEventListener(
       "click",
       cancelPhysicalExamEdit
+    );
+
+  }
+
+
+  // ==========================================================
+  // DIAGNOSIS
+  // ==========================================================
+
+  if (diagnosisForm) {
+
+    diagnosisForm.addEventListener(
+      "submit",
+      saveDiagnosis
+    );
+
+  }
+
+
+  if (reloadDiagnosisButton) {
+
+    reloadDiagnosisButton.addEventListener(
+      "click",
+      async () => {
+
+        if (!currentEncounter) {
+
+          setMessage(
+            "Belum ada Encounter aktif.",
+            true
+          );
+
+          return;
+
+        }
+
+        await loadDiagnoses(
+          currentEncounter.id
+        );
+
+      }
+    );
+
+  }
+
+
+  if (cancelDiagnosisEditButton) {
+
+    cancelDiagnosisEditButton.addEventListener(
+      "click",
+      cancelDiagnosisEdit
     );
 
   }
@@ -461,6 +524,9 @@ async function selectRegistration(
   currentPhysicalExams = [];
   editingPhysicalExamId = null;
 
+  currentDiagnoses = [];
+  editingDiagnosisId = null;
+
   showEncounterPanel();
 
   clearAnamnesisForm();
@@ -469,7 +535,11 @@ async function selectRegistration(
 
   clearPhysicalExamForm();
 
+  clearDiagnosisForm();
+
   renderPhysicalExamTable();
+
+  renderDiagnosisTable();
 
   setMessage(
     `Pendaftaran ${registration.registration_number} dipilih.`
@@ -542,8 +612,12 @@ async function loadEncounterForRegistration(
     currentEncounter = null;
     currentAnamnesis = null;
     currentVital = null;
+
     currentPhysicalExams = [];
     editingPhysicalExamId = null;
+
+    currentDiagnoses = [];
+    editingDiagnosisId = null;
 
     updateEncounterDisplay();
 
@@ -553,7 +627,11 @@ async function loadEncounterForRegistration(
 
     clearPhysicalExamForm();
 
+    clearDiagnosisForm();
+
     renderPhysicalExamTable();
+
+    renderDiagnosisTable();
 
     setMessage(
       "Pendaftaran ini belum memiliki Encounter."
@@ -587,6 +665,11 @@ async function loadEncounterForRegistration(
 
 
   await loadPhysicalExams(
+    data.id
+  );
+
+
+  await loadDiagnoses(
     data.id
   );
 
@@ -728,6 +811,11 @@ async function createEncounter() {
 
 
     await loadPhysicalExams(
+      data.id
+    );
+
+
+    await loadDiagnoses(
       data.id
     );
 
@@ -1790,10 +1878,6 @@ async function savePhysicalExam(
     };
 
 
-    // --------------------------------------------------------
-    // UPDATE TEMUAN YANG SUDAH ADA
-    // --------------------------------------------------------
-
     if (editingPhysicalExamId) {
 
       physicalExamData.updated_by =
@@ -1831,10 +1915,6 @@ async function savePhysicalExam(
 
     }
 
-
-    // --------------------------------------------------------
-    // INSERT TEMUAN BARU
-    // --------------------------------------------------------
 
     physicalExamData.recorded_by =
       userId;
@@ -2199,6 +2279,767 @@ function renderPhysicalExamTable() {
 
     }
   );
+
+}
+
+
+// ============================================================
+// DIAGNOSIS — LOAD
+// ============================================================
+
+async function loadDiagnoses(
+  encounterId
+) {
+
+  currentDiagnoses = [];
+  editingDiagnosisId = null;
+
+  clearDiagnosisForm();
+
+
+  const {
+    data,
+    error
+  } = await sb
+    .from("clinical_diagnoses")
+    .select(`
+      id,
+      encounter_id,
+      diagnosis_type,
+      diagnosis_code,
+      diagnosis_name,
+      diagnosis_notes,
+      diagnosed_at,
+      recorded_by,
+      created_by,
+      updated_by,
+      created_at,
+      updated_at
+    `)
+    .eq("encounter_id", encounterId)
+    .order("diagnosed_at", {
+      ascending: false
+    })
+    .order("created_at", {
+      ascending: false
+    });
+
+
+  if (error) {
+
+    console.error(error);
+
+    setMessage(
+      "Gagal memuat Diagnosis.",
+      true
+    );
+
+    renderDiagnosisTable();
+
+    return;
+
+  }
+
+
+  currentDiagnoses =
+    data || [];
+
+
+  renderDiagnosisTable();
+
+
+  if (
+    currentDiagnoses.length === 0
+  ) {
+
+    updateDiagnosisInfo(
+      "Belum ada diagnosis tersimpan."
+    );
+
+  } else {
+
+    updateDiagnosisInfo(
+      `${currentDiagnoses.length} diagnosis tersimpan.`
+    );
+
+  }
+
+}
+
+
+// ============================================================
+// DIAGNOSIS — SAVE / UPDATE
+// ============================================================
+
+async function saveDiagnosis(
+  event
+) {
+
+  event.preventDefault();
+
+
+  if (!currentEncounter) {
+
+    setMessage(
+      "Diagnosis tidak dapat disimpan karena belum ada Encounter.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  if (
+    currentEncounter.status !==
+    "IN_PROGRESS"
+  ) {
+
+    setMessage(
+      "Diagnosis hanya dapat dicatat pada Encounter yang masih IN_PROGRESS.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  const diagnosisType =
+    getValue("diagnosisType");
+
+  const diagnosisName =
+    getValue("diagnosisName");
+
+
+  if (!diagnosisType) {
+
+    setMessage(
+      "Tipe diagnosis wajib dipilih.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  if (!diagnosisName) {
+
+    setMessage(
+      "Nama diagnosis wajib diisi.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  const button =
+    document.getElementById(
+      "saveDiagnosisBtn"
+    );
+
+
+  button.disabled = true;
+
+
+  try {
+
+    const userId =
+      currentProfile.user_id;
+
+
+    const diagnosedAt =
+      getDateTimeValue("diagnosedAt");
+
+
+    const diagnosisData = {
+
+      encounter_id:
+        currentEncounter.id,
+
+      diagnosis_type:
+        diagnosisType,
+
+      diagnosis_code:
+        getValue("diagnosisCode"),
+
+      diagnosis_name:
+        diagnosisName,
+
+      diagnosis_notes:
+        getValue("diagnosisNotes"),
+
+      diagnosed_at:
+        diagnosedAt || new Date().toISOString()
+
+    };
+
+
+    // --------------------------------------------------------
+    // UPDATE DIAGNOSIS
+    // --------------------------------------------------------
+
+    if (editingDiagnosisId) {
+
+      diagnosisData.updated_by =
+        userId;
+
+
+      const {
+        data,
+        error
+      } = await sb
+        .from("clinical_diagnoses")
+        .update(diagnosisData)
+        .eq("id", editingDiagnosisId)
+        .eq("encounter_id", currentEncounter.id)
+        .select()
+        .single();
+
+
+      if (error) {
+        throw error;
+      }
+
+
+      setMessage(
+        "Diagnosis berhasil diperbarui."
+      );
+
+
+      await loadDiagnoses(
+        currentEncounter.id
+      );
+
+
+      return;
+
+    }
+
+
+    // --------------------------------------------------------
+    // INSERT DIAGNOSIS BARU
+    // --------------------------------------------------------
+
+    diagnosisData.recorded_by =
+      userId;
+
+    diagnosisData.created_by =
+      userId;
+
+
+    const {
+      data,
+      error
+    } = await sb
+      .from("clinical_diagnoses")
+      .insert(diagnosisData)
+      .select()
+      .single();
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    currentDiagnoses = [
+      data,
+      ...currentDiagnoses
+    ];
+
+
+    editingDiagnosisId = null;
+
+
+    clearDiagnosisForm();
+
+
+    renderDiagnosisTable();
+
+
+    updateDiagnosisInfo(
+      `${currentDiagnoses.length} diagnosis tersimpan.`
+    );
+
+
+    setMessage(
+      "Diagnosis berhasil ditambahkan."
+    );
+
+  } catch (error) {
+
+    console.error(error);
+
+    setMessage(
+      "Diagnosis gagal disimpan: " +
+      (error.message || "kesalahan tidak diketahui"),
+      true
+    );
+
+  } finally {
+
+    button.disabled = false;
+
+  }
+
+}
+
+
+// ============================================================
+// DIAGNOSIS — EDIT
+// ============================================================
+
+function editDiagnosis(
+  id
+) {
+
+  if (!currentEncounter) {
+
+    setMessage(
+      "Belum ada Encounter aktif.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  if (
+    currentEncounter.status !==
+    "IN_PROGRESS"
+  ) {
+
+    setMessage(
+      "Diagnosis tidak dapat diubah karena Encounter sudah tidak IN_PROGRESS.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  const item =
+    currentDiagnoses.find(
+      diagnosis => diagnosis.id === id
+    );
+
+
+  if (!item) {
+
+    setMessage(
+      "Data Diagnosis tidak ditemukan.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  editingDiagnosisId =
+    item.id;
+
+
+  setInputValue(
+    "diagnosedAt",
+    toDateTimeLocal(item.diagnosed_at)
+  );
+
+
+  setInputValue(
+    "diagnosisType",
+    item.diagnosis_type
+  );
+
+
+  setInputValue(
+    "diagnosisCode",
+    item.diagnosis_code
+  );
+
+
+  setInputValue(
+    "diagnosisName",
+    item.diagnosis_name
+  );
+
+
+  setInputValue(
+    "diagnosisNotes",
+    item.diagnosis_notes
+  );
+
+
+  const saveButton =
+    document.getElementById(
+      "saveDiagnosisBtn"
+    );
+
+
+  const cancelButton =
+    document.getElementById(
+      "cancelDiagnosisEditBtn"
+    );
+
+
+  if (saveButton) {
+
+    saveButton.textContent =
+      "Simpan Perubahan";
+
+  }
+
+
+  if (cancelButton) {
+
+    cancelButton.style.display =
+      "inline-block";
+
+  }
+
+
+  updateDiagnosisInfo(
+    `Sedang mengubah diagnosis ${item.diagnosis_name}.`
+  );
+
+
+  const nameInput =
+    document.getElementById(
+      "diagnosisName"
+    );
+
+
+  if (nameInput) {
+
+    nameInput.focus();
+
+  }
+
+}
+
+
+// ============================================================
+// DIAGNOSIS — CANCEL EDIT
+// ============================================================
+
+function cancelDiagnosisEdit() {
+
+  editingDiagnosisId = null;
+
+  clearDiagnosisForm();
+
+
+  updateDiagnosisInfo(
+    currentDiagnoses.length
+      ? `${currentDiagnoses.length} diagnosis tersimpan.`
+      : "Belum ada diagnosis tersimpan."
+  );
+
+}
+
+
+// ============================================================
+// DIAGNOSIS — RENDER TABLE
+// ============================================================
+
+function renderDiagnosisTable() {
+
+  const table =
+    document.getElementById(
+      "diagnosisTable"
+    );
+
+
+  if (!table) {
+    return;
+  }
+
+
+  if (
+    !currentDiagnoses ||
+    currentDiagnoses.length === 0
+  ) {
+
+    table.innerHTML = `
+      <tr>
+        <td colspan="7" class="muted">
+          Belum ada diagnosis tersimpan.
+        </td>
+      </tr>
+    `;
+
+    return;
+
+  }
+
+
+  table.innerHTML = "";
+
+
+  currentDiagnoses.forEach(
+    diagnosis => {
+
+      const row =
+        document.createElement("tr");
+
+
+      row.innerHTML = `
+
+        <td>
+          ${escapeHtml(
+            formatDateTime(
+              diagnosis.diagnosed_at
+            )
+          )}
+        </td>
+
+        <td>
+          ${escapeHtml(
+            getDiagnosisTypeLabel(
+              diagnosis.diagnosis_type
+            )
+          )}
+        </td>
+
+        <td>
+          ${escapeHtml(
+            diagnosis.diagnosis_code || "-"
+          )}
+        </td>
+
+        <td style="white-space:pre-wrap">
+          ${escapeHtml(
+            diagnosis.diagnosis_name || "-"
+          )}
+        </td>
+
+        <td style="white-space:pre-wrap">
+          ${escapeHtml(
+            diagnosis.diagnosis_notes || "-"
+          )}
+        </td>
+
+        <td>
+          ${escapeHtml(
+            diagnosis.updated_at
+              ? formatDateTime(
+                  diagnosis.updated_at
+                )
+              : formatDateTime(
+                  diagnosis.created_at
+                )
+          )}
+        </td>
+
+        <td>
+
+          <button
+            type="button"
+            class="edit-diagnosis"
+          >
+            Ubah
+          </button>
+
+        </td>
+
+      `;
+
+
+      const editButton =
+        row.querySelector(
+          ".edit-diagnosis"
+        );
+
+
+      if (editButton) {
+
+        editButton.addEventListener(
+          "click",
+          () => {
+
+            editDiagnosis(
+              diagnosis.id
+            );
+
+          }
+        );
+
+      }
+
+
+      table.appendChild(row);
+
+    }
+  );
+
+}
+
+
+// ============================================================
+// DIAGNOSIS — CLEAR FORM
+// ============================================================
+
+function clearDiagnosisForm() {
+
+  const fields = [
+
+    "diagnosisType",
+    "diagnosisCode",
+    "diagnosisName",
+    "diagnosisNotes"
+
+  ];
+
+
+  fields.forEach(
+    id => {
+
+      const element =
+        document.getElementById(id);
+
+
+      if (element) {
+
+        element.value = "";
+
+      }
+
+    }
+  );
+
+
+  editingDiagnosisId = null;
+
+
+  setDefaultDiagnosedAt();
+
+
+  const saveButton =
+    document.getElementById(
+      "saveDiagnosisBtn"
+    );
+
+
+  const cancelButton =
+    document.getElementById(
+      "cancelDiagnosisEditBtn"
+    );
+
+
+  if (saveButton) {
+
+    saveButton.textContent =
+      "Tambah Diagnosis";
+
+  }
+
+
+  if (cancelButton) {
+
+    cancelButton.style.display =
+      "none";
+
+  }
+
+}
+
+
+// ============================================================
+// DIAGNOSIS — DEFAULT WAKTU
+// ============================================================
+
+function setDefaultDiagnosedAt() {
+
+  const element =
+    document.getElementById(
+      "diagnosedAt"
+    );
+
+
+  if (!element) {
+    return;
+  }
+
+
+  const now =
+    new Date();
+
+
+  const offset =
+    now.getTimezoneOffset();
+
+
+  const localDate =
+    new Date(
+      now.getTime() -
+      offset * 60000
+    );
+
+
+  element.value =
+    localDate
+      .toISOString()
+      .slice(0, 16);
+
+}
+
+
+// ============================================================
+// DIAGNOSIS — LABEL
+// ============================================================
+
+function getDiagnosisTypeLabel(
+  value
+) {
+
+  const labels = {
+
+    WORKING:
+      "Diagnosis Kerja",
+
+    PRIMARY:
+      "Diagnosis Utama",
+
+    SECONDARY:
+      "Diagnosis Sekunder",
+
+    FINAL:
+      "Diagnosis Final"
+
+  };
+
+
+  return labels[value] || value || "-";
+
+}
+
+
+// ============================================================
+// DIAGNOSIS — INFO
+// ============================================================
+
+function updateDiagnosisInfo(
+  message
+) {
+
+  const element =
+    document.getElementById(
+      "diagnosisInfo"
+    );
+
+
+  if (element) {
+
+    element.textContent =
+      message;
+
+  }
 
 }
 
