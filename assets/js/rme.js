@@ -1,6 +1,7 @@
 // SIMPUS MERITAI — Fresh Start V2
 // Modul Rekam Medis Elektronik
-// Encounter + Anamnesis + Vital Sign + Pemeriksaan Fisik + Diagnosis
+// Encounter + Anamnesis + Vital Sign + Pemeriksaan Fisik
+// + Diagnosis + Tindakan
 
 let currentProfile = null;
 let selectedRegistration = null;
@@ -13,6 +14,9 @@ let editingPhysicalExamId = null;
 
 let currentDiagnoses = [];
 let editingDiagnosisId = null;
+
+let currentActions = [];
+let editingActionId = null;
 
 
 // ============================================================
@@ -99,6 +103,19 @@ function bindEvents() {
   const cancelDiagnosisEditButton =
     document.getElementById("cancelDiagnosisEditBtn");
 
+  const actionForm =
+    document.getElementById("actionForm");
+
+  const reloadActionButton =
+    document.getElementById("reloadActionBtn");
+
+  const cancelActionEditButton =
+    document.getElementById("cancelActionEditBtn");
+
+
+  // ==========================================================
+  // ENCOUNTER
+  // ==========================================================
 
   if (refreshButton) {
 
@@ -129,6 +146,10 @@ function bindEvents() {
 
   }
 
+
+  // ==========================================================
+  // ANAMNESIS
+  // ==========================================================
 
   if (anamnesisForm) {
 
@@ -166,6 +187,10 @@ function bindEvents() {
 
   }
 
+
+  // ==========================================================
+  // VITAL SIGN
+  // ==========================================================
 
   if (vitalForm) {
 
@@ -223,6 +248,10 @@ function bindEvents() {
 
   }
 
+
+  // ==========================================================
+  // PEMERIKSAAN FISIK
+  // ==========================================================
 
   if (physicalExamForm) {
 
@@ -317,6 +346,57 @@ function bindEvents() {
     cancelDiagnosisEditButton.addEventListener(
       "click",
       cancelDiagnosisEdit
+    );
+
+  }
+
+
+  // ==========================================================
+  // TINDAKAN
+  // ==========================================================
+
+  if (actionForm) {
+
+    actionForm.addEventListener(
+      "submit",
+      saveAction
+    );
+
+  }
+
+
+  if (reloadActionButton) {
+
+    reloadActionButton.addEventListener(
+      "click",
+      async () => {
+
+        if (!currentEncounter) {
+
+          setMessage(
+            "Belum ada Encounter aktif.",
+            true
+          );
+
+          return;
+
+        }
+
+        await loadActions(
+          currentEncounter.id
+        );
+
+      }
+    );
+
+  }
+
+
+  if (cancelActionEditButton) {
+
+    cancelActionEditButton.addEventListener(
+      "click",
+      cancelActionEdit
     );
 
   }
@@ -527,6 +607,9 @@ async function selectRegistration(
   currentDiagnoses = [];
   editingDiagnosisId = null;
 
+  currentActions = [];
+  editingActionId = null;
+
   showEncounterPanel();
 
   clearAnamnesisForm();
@@ -537,9 +620,13 @@ async function selectRegistration(
 
   clearDiagnosisForm();
 
+  clearActionForm();
+
   renderPhysicalExamTable();
 
   renderDiagnosisTable();
+
+  renderActionTable();
 
   setMessage(
     `Pendaftaran ${registration.registration_number} dipilih.`
@@ -619,6 +706,9 @@ async function loadEncounterForRegistration(
     currentDiagnoses = [];
     editingDiagnosisId = null;
 
+    currentActions = [];
+    editingActionId = null;
+
     updateEncounterDisplay();
 
     clearAnamnesisForm();
@@ -629,9 +719,13 @@ async function loadEncounterForRegistration(
 
     clearDiagnosisForm();
 
+    clearActionForm();
+
     renderPhysicalExamTable();
 
     renderDiagnosisTable();
+
+    renderActionTable();
 
     setMessage(
       "Pendaftaran ini belum memiliki Encounter."
@@ -670,6 +764,11 @@ async function loadEncounterForRegistration(
 
 
   await loadDiagnoses(
+    data.id
+  );
+
+
+  await loadActions(
     data.id
   );
 
@@ -816,6 +915,11 @@ async function createEncounter() {
 
 
     await loadDiagnoses(
+      data.id
+    );
+
+
+    await loadActions(
       data.id
     );
 
@@ -2478,10 +2582,6 @@ async function saveDiagnosis(
     };
 
 
-    // --------------------------------------------------------
-    // UPDATE DIAGNOSIS
-    // --------------------------------------------------------
-
     if (editingDiagnosisId) {
 
       diagnosisData.updated_by =
@@ -2519,10 +2619,6 @@ async function saveDiagnosis(
 
     }
 
-
-    // --------------------------------------------------------
-    // INSERT DIAGNOSIS BARU
-    // --------------------------------------------------------
 
     diagnosisData.recorded_by =
       userId;
@@ -3031,6 +3127,703 @@ function updateDiagnosisInfo(
   const element =
     document.getElementById(
       "diagnosisInfo"
+    );
+
+
+  if (element) {
+
+    element.textContent =
+      message;
+
+  }
+
+}
+
+
+// ============================================================
+// TINDAKAN — LOAD
+// ============================================================
+
+async function loadActions(
+  encounterId
+) {
+
+  currentActions = [];
+  editingActionId = null;
+
+  clearActionForm();
+
+
+  const {
+    data,
+    error
+  } = await sb
+    .from("clinical_actions")
+    .select(`
+      id,
+      encounter_id,
+      action_code,
+      action_name,
+      action_notes,
+      performed_at,
+      performed_by,
+      created_by,
+      updated_by,
+      created_at,
+      updated_at
+    `)
+    .eq("encounter_id", encounterId)
+    .order("performed_at", {
+      ascending: false
+    })
+    .order("created_at", {
+      ascending: false
+    });
+
+
+  if (error) {
+
+    console.error(error);
+
+    setMessage(
+      "Gagal memuat Tindakan.",
+      true
+    );
+
+    renderActionTable();
+
+    return;
+
+  }
+
+
+  currentActions =
+    data || [];
+
+
+  renderActionTable();
+
+
+  if (
+    currentActions.length === 0
+  ) {
+
+    updateActionInfo(
+      "Belum ada tindakan tersimpan."
+    );
+
+  } else {
+
+    updateActionInfo(
+      `${currentActions.length} tindakan tersimpan.`
+    );
+
+  }
+
+}
+
+
+// ============================================================
+// TINDAKAN — SAVE / UPDATE
+// ============================================================
+
+async function saveAction(
+  event
+) {
+
+  event.preventDefault();
+
+
+  if (!currentEncounter) {
+
+    setMessage(
+      "Tindakan tidak dapat disimpan karena belum ada Encounter.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  if (
+    currentEncounter.status !==
+    "IN_PROGRESS"
+  ) {
+
+    setMessage(
+      "Tindakan hanya dapat dicatat pada Encounter yang masih IN_PROGRESS.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  const actionName =
+    getValue("actionName");
+
+
+  if (!actionName) {
+
+    setMessage(
+      "Nama tindakan wajib diisi.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  const button =
+    document.getElementById(
+      "saveActionBtn"
+    );
+
+
+  button.disabled = true;
+
+
+  try {
+
+    const userId =
+      currentProfile.user_id;
+
+
+    const performedAt =
+      getDateTimeValue("performedAt");
+
+
+    const actionData = {
+
+      encounter_id:
+        currentEncounter.id,
+
+      action_code:
+        getValue("actionCode"),
+
+      action_name:
+        actionName,
+
+      action_notes:
+        getValue("actionNotes"),
+
+      performed_at:
+        performedAt || new Date().toISOString()
+
+    };
+
+
+    // --------------------------------------------------------
+    // UPDATE TINDAKAN
+    // --------------------------------------------------------
+
+    if (editingActionId) {
+
+      actionData.updated_by =
+        userId;
+
+
+      const {
+        data,
+        error
+      } = await sb
+        .from("clinical_actions")
+        .update(actionData)
+        .eq("id", editingActionId)
+        .eq("encounter_id", currentEncounter.id)
+        .select()
+        .single();
+
+
+      if (error) {
+        throw error;
+      }
+
+
+      setMessage(
+        "Tindakan berhasil diperbarui."
+      );
+
+
+      await loadActions(
+        currentEncounter.id
+      );
+
+
+      return;
+
+    }
+
+
+    // --------------------------------------------------------
+    // INSERT TINDAKAN BARU
+    // --------------------------------------------------------
+
+    actionData.performed_by =
+      userId;
+
+    actionData.created_by =
+      userId;
+
+
+    const {
+      data,
+      error
+    } = await sb
+      .from("clinical_actions")
+      .insert(actionData)
+      .select()
+      .single();
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    currentActions = [
+      data,
+      ...currentActions
+    ];
+
+
+    editingActionId = null;
+
+
+    clearActionForm();
+
+
+    renderActionTable();
+
+
+    updateActionInfo(
+      `${currentActions.length} tindakan tersimpan.`
+    );
+
+
+    setMessage(
+      "Tindakan berhasil ditambahkan."
+    );
+
+  } catch (error) {
+
+    console.error(error);
+
+    setMessage(
+      "Tindakan gagal disimpan: " +
+      (error.message || "kesalahan tidak diketahui"),
+      true
+    );
+
+  } finally {
+
+    button.disabled = false;
+
+  }
+
+}
+
+
+// ============================================================
+// TINDAKAN — EDIT
+// ============================================================
+
+function editAction(
+  id
+) {
+
+  if (!currentEncounter) {
+
+    setMessage(
+      "Belum ada Encounter aktif.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  if (
+    currentEncounter.status !==
+    "IN_PROGRESS"
+  ) {
+
+    setMessage(
+      "Tindakan tidak dapat diubah karena Encounter sudah tidak IN_PROGRESS.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  const item =
+    currentActions.find(
+      action => action.id === id
+    );
+
+
+  if (!item) {
+
+    setMessage(
+      "Data Tindakan tidak ditemukan.",
+      true
+    );
+
+    return;
+
+  }
+
+
+  editingActionId =
+    item.id;
+
+
+  setInputValue(
+    "performedAt",
+    toDateTimeLocal(item.performed_at)
+  );
+
+
+  setInputValue(
+    "actionCode",
+    item.action_code
+  );
+
+
+  setInputValue(
+    "actionName",
+    item.action_name
+  );
+
+
+  setInputValue(
+    "actionNotes",
+    item.action_notes
+  );
+
+
+  const saveButton =
+    document.getElementById(
+      "saveActionBtn"
+    );
+
+
+  const cancelButton =
+    document.getElementById(
+      "cancelActionEditBtn"
+    );
+
+
+  if (saveButton) {
+
+    saveButton.textContent =
+      "Simpan Perubahan";
+
+  }
+
+
+  if (cancelButton) {
+
+    cancelButton.style.display =
+      "inline-block";
+
+  }
+
+
+  updateActionInfo(
+    `Sedang mengubah tindakan ${item.action_name}.`
+  );
+
+
+  const nameInput =
+    document.getElementById(
+      "actionName"
+    );
+
+
+  if (nameInput) {
+
+    nameInput.focus();
+
+  }
+
+}
+
+
+// ============================================================
+// TINDAKAN — CANCEL EDIT
+// ============================================================
+
+function cancelActionEdit() {
+
+  editingActionId = null;
+
+  clearActionForm();
+
+
+  updateActionInfo(
+    currentActions.length
+      ? `${currentActions.length} tindakan tersimpan.`
+      : "Belum ada tindakan tersimpan."
+  );
+
+}
+
+
+// ============================================================
+// TINDAKAN — RENDER TABLE
+// ============================================================
+
+function renderActionTable() {
+
+  const table =
+    document.getElementById(
+      "actionTable"
+    );
+
+
+  if (!table) {
+    return;
+  }
+
+
+  if (
+    !currentActions ||
+    currentActions.length === 0
+  ) {
+
+    table.innerHTML = `
+      <tr>
+        <td colspan="6" class="muted">
+          Belum ada tindakan tersimpan.
+        </td>
+      </tr>
+    `;
+
+    return;
+
+  }
+
+
+  table.innerHTML = "";
+
+
+  currentActions.forEach(
+    action => {
+
+      const row =
+        document.createElement("tr");
+
+
+      row.innerHTML = `
+
+        <td>
+          ${escapeHtml(
+            formatDateTime(
+              action.performed_at
+            )
+          )}
+        </td>
+
+        <td>
+          ${escapeHtml(
+            action.action_code || "-"
+          )}
+        </td>
+
+        <td style="white-space:pre-wrap">
+          ${escapeHtml(
+            action.action_name || "-"
+          )}
+        </td>
+
+        <td style="white-space:pre-wrap">
+          ${escapeHtml(
+            action.action_notes || "-"
+          )}
+        </td>
+
+        <td>
+          ${escapeHtml(
+            action.updated_at
+              ? formatDateTime(
+                  action.updated_at
+                )
+              : formatDateTime(
+                  action.created_at
+                )
+          )}
+        </td>
+
+        <td>
+
+          <button
+            type="button"
+            class="edit-action"
+          >
+            Ubah
+          </button>
+
+        </td>
+
+      `;
+
+
+      const editButton =
+        row.querySelector(
+          ".edit-action"
+        );
+
+
+      if (editButton) {
+
+        editButton.addEventListener(
+          "click",
+          () => {
+
+            editAction(
+              action.id
+            );
+
+          }
+        );
+
+      }
+
+
+      table.appendChild(row);
+
+    }
+  );
+
+}
+
+
+// ============================================================
+// TINDAKAN — CLEAR FORM
+// ============================================================
+
+function clearActionForm() {
+
+  const fields = [
+
+    "actionCode",
+    "actionName",
+    "actionNotes"
+
+  ];
+
+
+  fields.forEach(
+    id => {
+
+      const element =
+        document.getElementById(id);
+
+
+      if (element) {
+
+        element.value = "";
+
+      }
+
+    }
+  );
+
+
+  editingActionId = null;
+
+
+  setDefaultPerformedAt();
+
+
+  const saveButton =
+    document.getElementById(
+      "saveActionBtn"
+    );
+
+
+  const cancelButton =
+    document.getElementById(
+      "cancelActionEditBtn"
+    );
+
+
+  if (saveButton) {
+
+    saveButton.textContent =
+      "Tambah Tindakan";
+
+  }
+
+
+  if (cancelButton) {
+
+    cancelButton.style.display =
+      "none";
+
+  }
+
+}
+
+
+// ============================================================
+// TINDAKAN — DEFAULT WAKTU
+// ============================================================
+
+function setDefaultPerformedAt() {
+
+  const element =
+    document.getElementById(
+      "performedAt"
+    );
+
+
+  if (!element) {
+    return;
+  }
+
+
+  const now =
+    new Date();
+
+
+  const offset =
+    now.getTimezoneOffset();
+
+
+  const localDate =
+    new Date(
+      now.getTime() -
+      offset * 60000
+    );
+
+
+  element.value =
+    localDate
+      .toISOString()
+      .slice(0, 16);
+
+}
+
+
+// ============================================================
+// TINDAKAN — INFO
+// ============================================================
+
+function updateActionInfo(
+  message
+) {
+
+  const element =
+    document.getElementById(
+      "actionInfo"
     );
 
 
