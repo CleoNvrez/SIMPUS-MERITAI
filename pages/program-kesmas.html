@@ -1,1 +1,698 @@
-<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Program Kesehatan Masyarakat | Puskesmas Meritai</title><link rel="stylesheet" href="../assets/css/app.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../assets/js/config.js"></script><script src="../assets/js/auth.js"></script></head><body><header><strong>Puskesmas Meritai</strong><button style="max-width:120px;float:right;margin:0" onclick="logout()">Keluar</button></header><main><div class="card"><h2>Program Kesehatan Masyarakat</h2><p class="muted">Modul Program Kesehatan Masyarakat — Fresh Start V2.</p></div></main></body></html>
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Program Kesehatan Masyarakat | Puskesmas Meritai</title>
+
+  <link rel="stylesheet" href="../assets/css/app.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/config.js"></script>
+  <script src="../assets/js/auth.js"></script>
+</head>
+
+<body>
+
+  <!-- =====================================================
+       HEADER
+       ===================================================== -->
+  <header>
+    <strong>Puskesmas Meritai</strong>
+
+    <button
+      type="button"
+      onclick="logout()"
+      style="max-width:120px;float:right;margin:0"
+    >
+      Keluar
+    </button>
+  </header>
+
+
+  <!-- =====================================================
+       MAIN
+       ===================================================== -->
+  <main>
+
+    <!-- ===================================================
+         PAGE HEADER
+         =================================================== -->
+    <section class="card">
+
+      <h2>Program Kesehatan Masyarakat</h2>
+
+      <p class="muted">
+        Pengelolaan program, kegiatan, indikator, dan pencatatan
+        kegiatan kesehatan masyarakat Puskesmas Meritai.
+      </p>
+
+    </section>
+
+
+    <!-- ===================================================
+         PROGRAM
+         =================================================== -->
+    <section class="card">
+
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          gap:12px;
+          flex-wrap:wrap;
+        "
+      >
+
+        <div>
+          <h3 style="margin:0 0 4px">
+            Program Kesehatan Masyarakat
+          </h3>
+
+          <p class="muted" style="margin:0">
+            Pilih program untuk melihat kegiatan dan indikatornya.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          id="reloadProgramsBtn"
+        >
+          Muat Ulang
+        </button>
+
+      </div>
+
+      <div
+        id="programInfo"
+        class="muted"
+        style="margin-top:12px"
+      >
+        Memuat program...
+      </div>
+
+      <div
+        id="programContainer"
+        style="
+          display:grid;
+          grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+          gap:12px;
+          margin-top:16px;
+        "
+      ></div>
+
+    </section>
+
+
+    <!-- ===================================================
+         KEGIATAN
+         =================================================== -->
+    <section
+      class="card"
+      id="activitySection"
+      hidden
+    >
+
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          gap:12px;
+          flex-wrap:wrap;
+        "
+      >
+
+        <div>
+
+          <h3
+            id="selectedProgramTitle"
+            style="margin:0 0 4px"
+          >
+            Kegiatan Program
+          </h3>
+
+          <p
+            id="selectedProgramDescription"
+            class="muted"
+            style="margin:0"
+          ></p>
+
+        </div>
+
+        <button
+          type="button"
+          id="backToProgramsBtn"
+        >
+          Kembali ke Program
+        </button>
+
+      </div>
+
+
+      <div
+        id="activityInfo"
+        class="muted"
+        style="margin-top:12px"
+      >
+        Pilih kegiatan.
+      </div>
+
+
+      <div
+        id="activityContainer"
+        style="
+          display:grid;
+          grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+          gap:12px;
+          margin-top:16px;
+        "
+      ></div>
+
+    </section>
+
+
+    <!-- ===================================================
+         INDIKATOR
+         =================================================== -->
+    <section
+      class="card"
+      id="indicatorSection"
+      hidden
+    >
+
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          gap:12px;
+          flex-wrap:wrap;
+        "
+      >
+
+        <div>
+
+          <h3
+            id="selectedActivityTitle"
+            style="margin:0 0 4px"
+          >
+            Indikator Kegiatan
+          </h3>
+
+          <p
+            id="selectedActivityDescription"
+            class="muted"
+            style="margin:0"
+          ></p>
+
+        </div>
+
+        <button
+          type="button"
+          id="backToActivitiesBtn"
+        >
+          Kembali ke Kegiatan
+        </button>
+
+      </div>
+
+
+      <div
+        id="indicatorInfo"
+        class="muted"
+        style="margin-top:12px"
+      >
+        Memuat indikator...
+      </div>
+
+
+      <div
+        style="
+          overflow-x:auto;
+          margin-top:16px;
+        "
+      >
+
+        <table
+          id="indicatorTable"
+          style="
+            width:100%;
+            border-collapse:collapse;
+          "
+        >
+
+          <thead>
+
+            <tr>
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #e5e7eb;
+                "
+              >
+                Kode
+              </th>
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #e5e7eb;
+                "
+              >
+                Indikator
+              </th>
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #e5e7eb;
+                "
+              >
+                Satuan
+              </th>
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #e5e7eb;
+                "
+              >
+                Target
+              </th>
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #e5e7eb;
+                "
+              >
+                Aksi
+              </th>
+
+            </tr>
+
+          </thead>
+
+          <tbody id="indicatorTableBody">
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         PENCATATAN KEGIATAN
+         =================================================== -->
+    <section
+      class="card"
+      id="recordSection"
+      hidden
+    >
+
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          gap:12px;
+          flex-wrap:wrap;
+        "
+      >
+
+        <div>
+
+          <h3 style="margin:0 0 4px">
+            Pencatatan Kegiatan
+          </h3>
+
+          <p
+            id="recordContext"
+            class="muted"
+            style="margin:0"
+          >
+            Catat pelaksanaan kegiatan kesehatan masyarakat.
+          </p>
+
+        </div>
+
+        <button
+          type="button"
+          id="reloadRecordsBtn"
+        >
+          Muat Ulang
+        </button>
+
+      </div>
+
+
+      <!-- ===============================================
+           FORM PENCATATAN
+           =============================================== -->
+      <form
+        id="activityRecordForm"
+        style="margin-top:16px"
+      >
+
+        <input
+          type="hidden"
+          id="recordId"
+        >
+
+        <div
+          style="
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+            gap:12px;
+          "
+        >
+
+          <!-- Tanggal -->
+          <div>
+
+            <label for="activityDate">
+              Tanggal Kegiatan
+            </label>
+
+            <input
+              type="date"
+              id="activityDate"
+              required
+            >
+
+          </div>
+
+
+          <!-- Lokasi -->
+          <div>
+
+            <label for="activityLocation">
+              Lokasi
+            </label>
+
+            <input
+              type="text"
+              id="activityLocation"
+              placeholder="Contoh: Posyandu Desa Meritai"
+            >
+
+          </div>
+
+
+          <!-- Kelompok Sasaran -->
+          <div>
+
+            <label for="targetGroup">
+              Kelompok Sasaran
+            </label>
+
+            <input
+              type="text"
+              id="targetGroup"
+              placeholder="Contoh: Ibu hamil"
+            >
+
+          </div>
+
+
+          <!-- Target -->
+          <div>
+
+            <label for="targetCount">
+              Jumlah Target
+            </label>
+
+            <input
+              type="number"
+              id="targetCount"
+              min="0"
+              step="1"
+              placeholder="0"
+            >
+
+          </div>
+
+
+          <!-- Peserta -->
+          <div>
+
+            <label for="participantCount">
+              Jumlah Peserta
+            </label>
+
+            <input
+              type="number"
+              id="participantCount"
+              min="0"
+              step="1"
+              placeholder="0"
+            >
+
+          </div>
+
+
+          <!-- Status -->
+          <div>
+
+            <label for="recordStatus">
+              Status
+            </label>
+
+            <select id="recordStatus">
+
+              <option value="PLANNED">
+                Direncanakan
+              </option>
+
+              <option value="ONGOING">
+                Berlangsung
+              </option>
+
+              <option value="COMPLETED">
+                Selesai
+              </option>
+
+              <option value="CANCELLED">
+                Dibatalkan
+              </option>
+
+            </select>
+
+          </div>
+
+        </div>
+
+
+        <!-- Ringkasan -->
+        <div style="margin-top:12px">
+
+          <label for="resultSummary">
+            Ringkasan Hasil
+          </label>
+
+          <textarea
+            id="resultSummary"
+            rows="4"
+            placeholder="Tuliskan hasil pelaksanaan kegiatan..."
+          ></textarea>
+
+        </div>
+
+
+        <!-- Catatan -->
+        <div style="margin-top:12px">
+
+          <label for="recordNotes">
+            Catatan
+          </label>
+
+          <textarea
+            id="recordNotes"
+            rows="3"
+            placeholder="Catatan tambahan..."
+          ></textarea>
+
+        </div>
+
+
+        <!-- Tombol -->
+        <div
+          style="
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+            margin-top:16px;
+          "
+        >
+
+          <button
+            type="submit"
+            id="saveRecordBtn"
+          >
+            Simpan Kegiatan
+          </button>
+
+          <button
+            type="button"
+            id="cancelRecordEditBtn"
+          >
+            Batal
+          </button>
+
+        </div>
+
+      </form>
+
+
+      <!-- ===============================================
+           INFORMASI RECORD
+           =============================================== -->
+      <div
+        id="recordInfo"
+        class="muted"
+        style="margin-top:16px"
+      ></div>
+
+
+      <!-- ===============================================
+           TABEL RECORD
+           =============================================== -->
+      <div
+        style="
+          overflow-x:auto;
+          margin-top:16px;
+        "
+      >
+
+        <table
+          id="recordTable"
+          style="
+            width:100%;
+            border-collapse:collapse;
+          "
+        >
+
+          <thead>
+
+            <tr>
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #e5e7eb;
+                "
+              >
+                Tanggal
+              </th>
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #e5e7eb;
+                "
+              >
+                Lokasi
+              </th>
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #e5e7eb;
+                "
+              >
+                Sasaran
+              </th>
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #e5e7eb;
+                "
+              >
+                Target
+              </th>
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #e5e7eb;
+                "
+              >
+                Peserta
+              </th>
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #e5e7eb;
+                "
+              >
+                Status
+              </th>
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #e5e7eb;
+                "
+              >
+                Aksi
+              </th>
+
+            </tr>
+
+          </thead>
+
+          <tbody id="recordTableBody">
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         ERROR / STATUS
+         =================================================== -->
+    <section
+      class="card"
+      id="pageMessage"
+      hidden
+    >
+
+      <div id="pageMessageText"></div>
+
+    </section>
+
+  </main>
+
+
+  <!-- =====================================================
+       JAVASCRIPT
+       ===================================================== -->
+  <script src="../assets/js/program-kesmas.js"></script>
+
+</body>
+</html>
