@@ -9,6 +9,84 @@ let clusterServices = [];
 
 
 // ============================================================
+// ROUTING LAYANAN
+// ============================================================
+
+const SERVICE_ROUTES = {
+
+  // ----------------------------------------------------------
+  // KLASTER 1 — MANAJEMEN
+  // ----------------------------------------------------------
+
+  MANAJEMEN: "dashboard.html",
+
+  PENDAFTARAN: "pendaftaran.html",
+
+  REKAM_MEDIS: "rme.html",
+
+  ASSEMBLING: "mutu.html",
+
+  FILLING: "mutu.html",
+
+  AUDIT_RM: "mutu.html",
+
+  MUTU: "mutu.html",
+
+  PELAPORAN: "laporan.html",
+
+  JEJARING: "jejaring.html",
+
+  PROMKES: "program-kesmas.html",
+
+
+  // ----------------------------------------------------------
+  // KLASTER 2 — KESEHATAN IBU DAN ANAK
+  // ----------------------------------------------------------
+
+  KIA: "pelayanan-klinis.html",
+
+  GIZI_KIA: "program-kesmas.html",
+
+  KESMAS_KIA: "program-kesmas.html",
+
+
+  // ----------------------------------------------------------
+  // KLASTER 3 — DEWASA DAN LANJUT USIA
+  // ----------------------------------------------------------
+
+  PELAYANAN_UMUM: "pelayanan-klinis.html",
+
+  GIZI_DEWASA_LANSIA: "program-kesmas.html",
+
+  KESMAS_DEWASA_LANSIA: "program-kesmas.html",
+
+
+  // ----------------------------------------------------------
+  // KLASTER 4 — P2M DAN KESLING
+  // ----------------------------------------------------------
+
+  P2P: "program-kesmas.html",
+
+  KESEHATAN_LINGKUNGAN: "program-kesmas.html",
+
+  KESMAS_P2M_KESLING: "program-kesmas.html",
+
+
+  // ----------------------------------------------------------
+  // KLASTER 5 — LINTAS KLASTER
+  // ----------------------------------------------------------
+
+  FARMASI: "farmasi.html",
+
+  LABORATORIUM: "lab.html",
+
+  LOGISTIK: "logistik.html",
+
+  PELAYANAN_GIGI: "pelayanan-klinis.html"
+};
+
+
+// ============================================================
 // INIT
 // ============================================================
 
@@ -22,19 +100,27 @@ document.addEventListener("DOMContentLoaded", async () => {
 // ============================================================
 
 async function initKlaster() {
+
   try {
-    const profileResult = await loadMyProfile();
+
+    const profileResult =
+      await loadMyProfile();
 
     if (!profileResult) {
       return;
     }
 
-    currentProfile = profileResult.profile;
+    currentProfile =
+      profileResult.profile;
 
     await loadClusters();
 
   } catch (error) {
-    console.error("Gagal menginisialisasi modul klaster:", error);
+
+    console.error(
+      "Gagal menginisialisasi modul klaster:",
+      error
+    );
 
     showError(
       "Terjadi kesalahan saat memuat modul Klaster Pelayanan."
@@ -49,9 +135,14 @@ async function initKlaster() {
 
 async function loadClusters() {
 
-  setInfo("Memuat data klaster pelayanan...");
+  setInfo(
+    "Memuat data klaster pelayanan..."
+  );
 
-  const { data, error } = await sb
+  const {
+    data,
+    error
+  } = await sb
     .from("clusters")
     .select(`
       id,
@@ -66,8 +157,13 @@ async function loadClusters() {
       ascending: true
     });
 
+
   if (error) {
-    console.error("Gagal mengambil clusters:", error);
+
+    console.error(
+      "Gagal mengambil clusters:",
+      error
+    );
 
     showError(
       "Data klaster tidak dapat dimuat. Silakan coba lagi."
@@ -76,7 +172,9 @@ async function loadClusters() {
     return;
   }
 
-  clusters = data || [];
+
+  clusters =
+    data || [];
 
   await loadClusterServices();
 }
@@ -88,7 +186,10 @@ async function loadClusters() {
 
 async function loadClusterServices() {
 
-  const { data, error } = await sb
+  const {
+    data,
+    error
+  } = await sb
     .from("cluster_services")
     .select(`
       id,
@@ -111,8 +212,13 @@ async function loadClusterServices() {
       ascending: true
     });
 
+
   if (error) {
-    console.error("Gagal mengambil cluster_services:", error);
+
+    console.error(
+      "Gagal mengambil cluster_services:",
+      error
+    );
 
     showError(
       "Data layanan klaster tidak dapat dimuat. Silakan coba lagi."
@@ -121,7 +227,9 @@ async function loadClusterServices() {
     return;
   }
 
-  clusterServices = data || [];
+
+  clusterServices =
+    data || [];
 
   renderClusters();
 }
@@ -133,55 +241,79 @@ async function loadClusterServices() {
 
 function renderClusters() {
 
-  const container = document.getElementById(
-    "clusterContainer"
-  );
+  const container =
+    document.getElementById(
+      "clusterContainer"
+    );
+
 
   if (!container) {
     return;
   }
 
+
   if (!clusters.length) {
 
     container.innerHTML = `
       <div class="card">
-        <h3>Belum Ada Klaster</h3>
+
+        <h3>
+          Belum Ada Klaster
+        </h3>
 
         <p class="muted">
           Belum terdapat klaster pelayanan aktif
           pada database.
         </p>
+
       </div>
     `;
 
-    setInfo("Tidak ada klaster aktif.");
+    setInfo(
+      "Tidak ada klaster aktif."
+    );
 
     return;
   }
 
+
   let html = "";
 
-  clusters.forEach((cluster, index) => {
 
-    const services = clusterServices
-      .filter(service =>
-        service.cluster_id === cluster.id
-      )
-      .sort((a, b) =>
-        (a.display_order || 0) -
-        (b.display_order || 0)
-      );
+  clusters.forEach(
+    (cluster, index) => {
 
-    html += renderClusterCard(
-      cluster,
-      services,
-      index + 1
-    );
-  });
+      const services =
+        clusterServices
+          .filter(
+            service =>
+              service.cluster_id ===
+              cluster.id
+          )
+          .sort(
+            (a, b) =>
+              (a.display_order || 0) -
+              (b.display_order || 0)
+          );
 
-  container.innerHTML = html;
 
-  const totalServices = clusterServices.length;
+      html +=
+        renderClusterCard(
+          cluster,
+          services,
+          index + 1
+        );
+    }
+  );
+
+
+  container.innerHTML =
+    html;
+
+
+  const totalServices =
+    clusterServices.length;
+
 
   setInfo(
     `${clusters.length} klaster aktif · ` +
@@ -200,9 +332,13 @@ function renderClusterCard(
   number
 ) {
 
-  const serviceCount = services.length;
+  const serviceCount =
+    services.length;
 
-  let servicesHtml = "";
+
+  let servicesHtml =
+    "";
+
 
   if (!serviceCount) {
 
@@ -214,19 +350,24 @@ function renderClusterCard(
 
   } else {
 
-    servicesHtml = services
-      .map((service, index) =>
-        renderService(
-          service,
-          index + 1
+    servicesHtml =
+      services
+        .map(
+          (service, index) =>
+            renderService(
+              service,
+              index + 1
+            )
         )
-      )
-      .join("");
+        .join("");
   }
 
 
   return `
-    <section class="card" style="margin-top:16px">
+    <section
+      class="card"
+      style="margin-top:16px"
+    >
 
       <div
         style="
@@ -242,7 +383,10 @@ function renderClusterCard(
 
           <div
             class="muted"
-            style="font-size:.85rem;margin-bottom:4px"
+            style="
+              font-size:.85rem;
+              margin-bottom:4px;
+            "
           >
             KLASTER ${number}
           </div>
@@ -255,13 +399,16 @@ function renderClusterCard(
             cluster.description
               ? `
                 <p class="muted">
-                  ${escapeHtml(cluster.description)}
+                  ${escapeHtml(
+                    cluster.description
+                  )}
                 </p>
               `
               : ""
           }
 
         </div>
+
 
         <div
           style="
@@ -307,24 +454,66 @@ function renderService(
   number
 ) {
 
-  const unit = Array.isArray(service.units)
-    ? service.units[0]
-    : service.units;
+  const unit =
+    Array.isArray(service.units)
+      ? service.units[0]
+      : service.units;
+
 
   const unitName =
-    unit && unit.is_active !== false
+    unit &&
+    unit.is_active !== false
       ? unit.name
       : "Unit belum tersedia";
 
 
+  const route =
+    getServiceRoute(
+      service.code
+    );
+
+
+  const isNavigable =
+    Boolean(route);
+
+
   return `
-    <div
+    <button
+      type="button"
+      ${
+        isNavigable
+          ? `onclick="openService('${escapeJs(route)}')"`
+          : ""
+      }
       style="
+        width:100%;
+        text-align:left;
         border:1px solid #e5e7eb;
         border-radius:10px;
         padding:14px;
         background:#f8fafc;
+        cursor:${isNavigable ? "pointer" : "default"};
+        transition:
+          transform .15s ease,
+          border-color .15s ease,
+          box-shadow .15s ease;
       "
+      ${
+        isNavigable
+          ? `
+            onmouseover="
+              this.style.transform='translateY(-2px)';
+              this.style.borderColor='#0f766e';
+              this.style.boxShadow='0 4px 12px rgba(0,0,0,.06)';
+            "
+            onmouseout="
+              this.style.transform='translateY(0)';
+              this.style.borderColor='#e5e7eb';
+              this.style.boxShadow='none';
+            "
+          `
+          : ""
+      }
     >
 
       <div
@@ -357,7 +546,9 @@ function renderService(
               class="muted"
               style="margin:8px 0"
             >
-              ${escapeHtml(service.description)}
+              ${escapeHtml(
+                service.description
+              )}
             </p>
           `
           : ""
@@ -383,8 +574,69 @@ function renderService(
 
       </div>
 
-    </div>
+
+      ${
+        isNavigable
+          ? `
+            <div
+              style="
+                margin-top:10px;
+                color:#0f766e;
+                font-size:.85rem;
+                font-weight:600;
+              "
+            >
+              Buka menu →
+            </div>
+          `
+          : `
+            <div
+              style="
+                margin-top:10px;
+                color:#9ca3af;
+                font-size:.85rem;
+              "
+            >
+              Menu belum tersedia
+            </div>
+          `
+      }
+
+    </button>
   `;
+}
+
+
+// ============================================================
+// SERVICE ROUTING
+// ============================================================
+
+function getServiceRoute(
+  serviceCode
+) {
+
+  if (!serviceCode) {
+    return null;
+  }
+
+  return (
+    SERVICE_ROUTES[
+      serviceCode
+    ] || null
+  );
+}
+
+
+function openService(
+  route
+) {
+
+  if (!route) {
+    return;
+  }
+
+  window.location.href =
+    route;
 }
 
 
@@ -394,25 +646,36 @@ function renderService(
 
 function setInfo(message) {
 
-  const element = document.getElementById(
-    "clusterInfo"
-  );
+  const element =
+    document.getElementById(
+      "clusterInfo"
+    );
+
 
   if (element) {
-    element.textContent = message;
+
+    element.textContent =
+      message;
   }
 }
 
 
+// ============================================================
+// ERROR
+// ============================================================
+
 function showError(message) {
 
-  const container = document.getElementById(
-    "clusterContainer"
-  );
+  const container =
+    document.getElementById(
+      "clusterContainer"
+    );
+
 
   if (!container) {
     return;
   }
+
 
   container.innerHTML = `
     <div class="card">
@@ -436,7 +699,10 @@ function showError(message) {
     </div>
   `;
 
-  setInfo("Terjadi kesalahan.");
+
+  setInfo(
+    "Terjadi kesalahan."
+  );
 }
 
 
@@ -446,20 +712,25 @@ function showError(message) {
 
 async function reloadClusters() {
 
-  const container = document.getElementById(
-    "clusterContainer"
-  );
+  const container =
+    document.getElementById(
+      "clusterContainer"
+    );
+
 
   if (container) {
 
     container.innerHTML = `
       <div class="card">
+
         <p class="muted">
           Memuat ulang data klaster...
         </p>
+
       </div>
     `;
   }
+
 
   await loadClusters();
 }
@@ -471,14 +742,71 @@ async function reloadClusters() {
 
 function escapeHtml(value) {
 
-  if (value === null || value === undefined) {
+  if (
+    value === null ||
+    value === undefined
+  ) {
     return "";
   }
 
+
   return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+}
+
+
+// ============================================================
+// JAVASCRIPT ESCAPE
+// ============================================================
+
+function escapeJs(value) {
+
+  if (
+    value === null ||
+    value === undefined
+  ) {
+    return "";
+  }
+
+
+  return String(value)
+    .replace(
+      /\\/g,
+      "\\\\"
+    )
+    .replace(
+      /'/g,
+      "\\'"
+    )
+    .replace(
+      /"/g,
+      '\\"'
+    )
+    .replace(
+      /\r/g,
+      "\\r"
+    )
+    .replace(
+      /\n/g,
+      "\\n"
+    );
 }
