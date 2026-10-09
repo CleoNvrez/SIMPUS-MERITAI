@@ -1,1 +1,488 @@
-<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Jejaring / Pustu / Posyandu | Puskesmas Meritai</title><link rel="stylesheet" href="../assets/css/app.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../assets/js/config.js"></script><script src="../assets/js/auth.js"></script></head><body><header><strong>Puskesmas Meritai</strong><button style="max-width:120px;float:right;margin:0" onclick="logout()">Keluar</button></header><main><div class="card"><h2>Jejaring / Pustu / Posyandu</h2><p class="muted">Modul Jejaring / Pustu / Posyandu — Fresh Start V2.</p></div></main></body></html>
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Jejaring / Pustu / Posyandu | Puskesmas Meritai</title>
+
+  <link rel="stylesheet" href="../assets/css/app.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/config.js"></script>
+  <script src="../assets/js/auth.js"></script>
+</head>
+
+<body>
+
+  <header>
+    <strong>Puskesmas Meritai</strong>
+
+    <button
+      type="button"
+      onclick="logout()"
+      style="max-width:120px;float:right;margin:0"
+    >
+      Keluar
+    </button>
+  </header>
+
+  <main>
+
+    <!-- =====================================================
+         HEADER MODUL
+    ====================================================== -->
+
+    <section class="card">
+      <h2>Jejaring / Pustu / Posyandu</h2>
+
+      <p class="muted">
+        Pengelolaan master fasilitas jejaring pelayanan
+        Puskesmas Meritai.
+      </p>
+    </section>
+
+
+    <!-- =====================================================
+         FORM MASTER JEJARING
+    ====================================================== -->
+
+    <section class="card">
+
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          gap:12px;
+          flex-wrap:wrap;
+        "
+      >
+
+        <div>
+          <h3 id="formTitle" style="margin:0 0 4px">
+            Tambah Jejaring / Pustu
+          </h3>
+
+          <p class="muted" style="margin:0">
+            Masukkan data fasilitas jejaring pelayanan.
+          </p>
+        </div>
+
+      </div>
+
+
+      <form id="networkFacilityForm" style="margin-top:16px">
+
+        <input
+          type="hidden"
+          id="facilityId"
+        >
+
+
+        <div
+          style="
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+            gap:12px;
+          "
+        >
+
+          <div>
+            <label for="facilityCode">
+              Kode
+            </label>
+
+            <input
+              type="text"
+              id="facilityCode"
+              placeholder="Contoh: PUSTU-001"
+              required
+            >
+          </div>
+
+
+          <div>
+            <label for="facilityName">
+              Nama Fasilitas
+            </label>
+
+            <input
+              type="text"
+              id="facilityName"
+              placeholder="Nama Pustu / Posyandu / Jejaring"
+              required
+            >
+          </div>
+
+
+          <div>
+            <label for="facilityType">
+              Jenis Fasilitas
+            </label>
+
+            <select
+              id="facilityType"
+              required
+            >
+              <option value="PUSTU">
+                Pustu
+              </option>
+
+              <option value="POSYANDU">
+                Posyandu
+              </option>
+
+              <option value="KLINIK">
+                Klinik
+              </option>
+
+              <option value="PRAKTIK_MANDIRI">
+                Praktik Mandiri
+              </option>
+
+              <option value="APOTEK">
+                Apotek
+              </option>
+
+              <option value="LABORATORIUM">
+                Laboratorium
+              </option>
+
+              <option value="FASILITAS_KESEHATAN">
+                Fasilitas Kesehatan
+              </option>
+
+              <option value="JEJARING_LAINNYA">
+                Jejaring Lainnya
+              </option>
+            </select>
+          </div>
+
+
+          <div>
+            <label for="facilityPhone">
+              Telepon
+            </label>
+
+            <input
+              type="text"
+              id="facilityPhone"
+              placeholder="Nomor telepon"
+            >
+          </div>
+
+
+          <div>
+            <label for="responsiblePerson">
+              Penanggung Jawab
+            </label>
+
+            <input
+              type="text"
+              id="responsiblePerson"
+              placeholder="Nama penanggung jawab"
+            >
+          </div>
+
+
+          <div>
+            <label for="responsiblePhone">
+              Telepon Penanggung Jawab
+            </label>
+
+            <input
+              type="text"
+              id="responsiblePhone"
+              placeholder="Nomor telepon"
+            >
+          </div>
+
+        </div>
+
+
+        <div style="margin-top:12px">
+
+          <label for="facilityAddress">
+            Alamat
+          </label>
+
+          <textarea
+            id="facilityAddress"
+            rows="3"
+            placeholder="Alamat fasilitas"
+          ></textarea>
+
+        </div>
+
+
+        <div
+          style="
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+            gap:12px;
+            margin-top:12px;
+          "
+        >
+
+          <div>
+            <label for="facilityVillage">
+              Desa / Kelurahan
+            </label>
+
+            <input
+              type="text"
+              id="facilityVillage"
+            >
+          </div>
+
+
+          <div>
+            <label for="facilityDistrict">
+              Kecamatan
+            </label>
+
+            <input
+              type="text"
+              id="facilityDistrict"
+            >
+          </div>
+
+
+          <div>
+            <label for="facilityRegency">
+              Kabupaten / Kota
+            </label>
+
+            <input
+              type="text"
+              id="facilityRegency"
+            >
+          </div>
+
+        </div>
+
+
+        <div style="margin-top:12px">
+
+          <label for="facilityNotes">
+            Catatan
+          </label>
+
+          <textarea
+            id="facilityNotes"
+            rows="3"
+            placeholder="Catatan tambahan"
+          ></textarea>
+
+        </div>
+
+
+        <div
+          style="
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+            margin-top:16px;
+          "
+        >
+
+          <button
+            type="submit"
+            id="saveFacilityBtn"
+          >
+            Simpan
+          </button>
+
+          <button
+            type="button"
+            id="cancelEditBtn"
+          >
+            Batal
+          </button>
+
+        </div>
+
+      </form>
+
+
+      <div
+        id="formInfo"
+        class="muted"
+        style="margin-top:12px"
+      ></div>
+
+    </section>
+
+
+    <!-- =====================================================
+         DAFTAR JEJARING
+    ====================================================== -->
+
+    <section class="card">
+
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          gap:12px;
+          flex-wrap:wrap;
+        "
+      >
+
+        <div>
+
+          <h3 style="margin:0 0 4px">
+            Daftar Jejaring / Pustu / Posyandu
+          </h3>
+
+          <p class="muted" style="margin:0">
+            Daftar fasilitas jejaring yang terdaftar.
+          </p>
+
+        </div>
+
+
+        <button
+          type="button"
+          id="reloadFacilitiesBtn"
+        >
+          Muat Ulang
+        </button>
+
+      </div>
+
+
+      <div
+        id="facilityInfo"
+        class="muted"
+        style="margin-top:12px"
+      >
+        Memuat data...
+      </div>
+
+
+      <div
+        style="
+          overflow-x:auto;
+          margin-top:16px;
+        "
+      >
+
+        <table
+          id="facilityTable"
+          style="
+            width:100%;
+            border-collapse:collapse;
+          "
+        >
+
+          <thead>
+
+            <tr>
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #e5e7eb;
+                "
+              >
+                Kode
+              </th>
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #e5e7eb;
+                "
+              >
+                Nama
+              </th>
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #e5e7eb;
+                "
+              >
+                Jenis
+              </th>
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #e5e7eb;
+                "
+              >
+                Wilayah
+              </th>
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #e5e7eb;
+                "
+              >
+                Penanggung Jawab
+              </th>
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #e5e7eb;
+                "
+              >
+                Status
+              </th>
+
+              <th
+                style="
+                  text-align:left;
+                  padding:10px;
+                  border-bottom:1px solid #e5e7eb;
+                "
+              >
+                Aksi
+              </th>
+
+            </tr>
+
+          </thead>
+
+          <tbody id="facilityTableBody"></tbody>
+
+        </table>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         PESAN HALAMAN
+    ====================================================== -->
+
+    <section
+      class="card"
+      id="pageMessage"
+      hidden
+    >
+
+      <div id="pageMessageText"></div>
+
+    </section>
+
+  </main>
+
+
+  <script src="../assets/js/jejaring.js"></script>
+
+</body>
+</html>
