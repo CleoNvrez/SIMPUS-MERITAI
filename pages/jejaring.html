@@ -466,6 +466,60 @@
 
 
     <!-- =====================================================
+         AKTIVITAS JEJARING
+    ====================================================== -->
+
+    <section class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div>
+          <h3 id="activityFormTitle" style="margin:0 0 4px">Tambah Aktivitas Jejaring</h3>
+          <p class="muted" style="margin:0">Pencatatan kegiatan pelayanan pada fasilitas jejaring.</p>
+        </div>
+        <button type="button" id="reloadActivitiesBtn">Muat Ulang Aktivitas</button>
+      </div>
+
+      <form id="networkActivityForm" style="margin-top:16px">
+        <input type="hidden" id="activityId">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+          <div><label for="activityFacilityId">Fasilitas</label><select id="activityFacilityId" required></select></div>
+          <div><label for="activityDate">Tanggal</label><input type="date" id="activityDate" required></div>
+          <div><label for="activityType">Jenis Aktivitas</label><input type="text" id="activityType" placeholder="Contoh: Pembinaan Pustu" required></div>
+          <div><label for="activityName">Nama Aktivitas</label><input type="text" id="activityName" placeholder="Nama kegiatan" required></div>
+          <div><label for="activityLocation">Lokasi</label><input type="text" id="activityLocation"></div>
+          <div><label for="activityTargetGroup">Kelompok Sasaran</label><input type="text" id="activityTargetGroup"></div>
+          <div><label for="activityTargetCount">Jumlah Sasaran</label><input type="number" id="activityTargetCount" min="0" step="1"></div>
+          <div><label for="activityParticipantCount">Jumlah Peserta</label><input type="number" id="activityParticipantCount" min="0" step="1"></div>
+          <div><label for="activityStatus">Status</label><select id="activityStatus" required><option value="PLANNED">Direncanakan</option><option value="ONGOING">Berlangsung</option><option value="COMPLETED" selected>Selesai</option><option value="CANCELLED">Dibatalkan</option></select></div>
+        </div>
+        <div style="margin-top:12px"><label for="activityResultSummary">Ringkasan Hasil</label><textarea id="activityResultSummary" rows="3"></textarea></div>
+        <div style="margin-top:12px"><label for="activityNotes">Catatan</label><textarea id="activityNotes" rows="3"></textarea></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px"><button type="submit" id="saveActivityBtn">Simpan Aktivitas</button><button type="button" id="cancelActivityEditBtn">Batal</button></div>
+      </form>
+      <div id="activityInfo" class="muted" style="margin-top:12px"></div>
+    </section>
+
+    <section class="card">
+      <h3 style="margin:0 0 4px">Daftar Aktivitas Jejaring</h3>
+      <p class="muted" style="margin:0">Riwayat pencatatan aktivitas fasilitas jejaring.</p>
+      <div id="activityTableInfo" class="muted" style="margin-top:12px">Memuat data aktivitas...</div>
+      <div style="overflow-x:auto;margin-top:16px">
+        <table id="activityTable" style="width:100%;border-collapse:collapse">
+          <thead><tr>
+            <th style="text-align:left;padding:10px;border-bottom:1px solid #e5e7eb">Tanggal</th>
+            <th style="text-align:left;padding:10px;border-bottom:1px solid #e5e7eb">Fasilitas</th>
+            <th style="text-align:left;padding:10px;border-bottom:1px solid #e5e7eb">Jenis</th>
+            <th style="text-align:left;padding:10px;border-bottom:1px solid #e5e7eb">Aktivitas</th>
+            <th style="text-align:left;padding:10px;border-bottom:1px solid #e5e7eb">Peserta</th>
+            <th style="text-align:left;padding:10px;border-bottom:1px solid #e5e7eb">Status</th>
+            <th style="text-align:left;padding:10px;border-bottom:1px solid #e5e7eb">Aksi</th>
+          </tr></thead>
+          <tbody id="activityTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+
+    <!-- =====================================================
          PESAN HALAMAN
     ====================================================== -->
 
