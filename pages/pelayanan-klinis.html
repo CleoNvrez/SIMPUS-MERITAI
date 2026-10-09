@@ -1,1 +1,409 @@
-<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pelayanan Klinis | Puskesmas Meritai</title><link rel="stylesheet" href="../assets/css/app.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../assets/js/config.js"></script><script src="../assets/js/auth.js"></script></head><body><header><strong>Puskesmas Meritai</strong><button style="max-width:120px;float:right;margin:0" onclick="logout()">Keluar</button></header><main><div class="card"><h2>Pelayanan Klinis</h2><p class="muted">Modul Pelayanan Klinis — Fresh Start V2.</p></div></main></body></html>
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <title>Pelayanan Klinis | Puskesmas Meritai</title>
+
+  <link rel="stylesheet" href="../assets/css/app.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/config.js"></script>
+  <script src="../assets/js/auth.js"></script>
+</head>
+
+<body>
+
+  <header>
+    <strong>Puskesmas Meritai</strong>
+
+    <button
+      type="button"
+      onclick="logout()"
+      style="max-width:120px;float:right;margin:0"
+    >
+      Keluar
+    </button>
+  </header>
+
+  <main>
+
+    <!-- HEADER MODUL -->
+    <section class="card">
+      <h2>Pelayanan Klinis</h2>
+
+      <p class="muted">
+        Pengelolaan pasien yang telah terdaftar untuk mendapatkan
+        pelayanan klinis pada hari berjalan.
+      </p>
+    </section>
+
+
+    <!-- REGISTRASI HARI INI -->
+    <section class="card">
+
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          gap:12px;
+          flex-wrap:wrap;
+        "
+      >
+
+        <div>
+          <h3 style="margin:0 0 4px">
+            Pasien Terdaftar
+          </h3>
+
+          <p class="muted" style="margin:0">
+            Pilih pasien untuk memulai atau melanjutkan pelayanan klinis.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          id="reloadRegistrationsBtn"
+        >
+          Muat Ulang
+        </button>
+
+      </div>
+
+
+      <!-- PENCARIAN -->
+      <div
+        style="
+          display:grid;
+          grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+          gap:12px;
+          margin-top:16px;
+        "
+      >
+
+        <div>
+          <label for="registrationSearch">
+            Cari Pasien
+          </label>
+
+          <input
+            type="search"
+            id="registrationSearch"
+            placeholder="Nama / No. RM / No. Registrasi / NIK"
+          >
+        </div>
+
+        <div>
+          <label for="serviceUnitFilter">
+            Unit Pelayanan
+          </label>
+
+          <select id="serviceUnitFilter">
+            <option value="">
+              Semua Unit
+            </option>
+          </select>
+        </div>
+
+      </div>
+
+
+      <div
+        id="registrationInfo"
+        class="muted"
+        style="margin-top:12px"
+      >
+        Memuat registrasi...
+      </div>
+
+
+      <div
+        id="registrationContainer"
+        style="
+          display:grid;
+          grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+          gap:12px;
+          margin-top:16px;
+        "
+      ></div>
+
+    </section>
+
+
+    <!-- PASIEN TERPILIH -->
+    <section
+      class="card"
+      id="selectedPatientSection"
+      hidden
+    >
+
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          gap:12px;
+          flex-wrap:wrap;
+        "
+      >
+
+        <div>
+          <h3 style="margin:0 0 4px">
+            Pasien Terpilih
+          </h3>
+
+          <p class="muted" style="margin:0">
+            Informasi registrasi dan status pelayanan pasien.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          id="clearSelectedPatientBtn"
+        >
+          Pilih Pasien Lain
+        </button>
+
+      </div>
+
+
+      <!-- IDENTITAS PASIEN -->
+      <div
+        id="patientIdentity"
+        style="
+          display:grid;
+          grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+          gap:12px;
+          margin-top:16px;
+        "
+      >
+
+        <div>
+          <div class="muted">Nama Pasien</div>
+          <strong id="patientName">-</strong>
+        </div>
+
+        <div>
+          <div class="muted">No. Rekam Medis</div>
+          <strong id="patientMedicalRecordNumber">-</strong>
+        </div>
+
+        <div>
+          <div class="muted">NIK</div>
+          <strong id="patientNik">-</strong>
+        </div>
+
+        <div>
+          <div class="muted">Jenis Kelamin</div>
+          <strong id="patientSex">-</strong>
+        </div>
+
+        <div>
+          <div class="muted">Tanggal Lahir</div>
+          <strong id="patientBirthDate">-</strong>
+        </div>
+
+      </div>
+
+
+      <!-- DETAIL REGISTRASI -->
+      <div
+        style="
+          border-top:1px solid #e5e7eb;
+          margin-top:20px;
+          padding-top:16px;
+        "
+      >
+
+        <h4 style="margin:0 0 12px">
+          Registrasi
+        </h4>
+
+        <div
+          style="
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+            gap:12px;
+          "
+        >
+
+          <div>
+            <div class="muted">No. Registrasi</div>
+            <strong id="registrationNumber">-</strong>
+          </div>
+
+          <div>
+            <div class="muted">Tanggal</div>
+            <strong id="registrationDate">-</strong>
+          </div>
+
+          <div>
+            <div class="muted">Unit Pelayanan</div>
+            <strong id="registrationUnit">-</strong>
+          </div>
+
+          <div>
+            <div class="muted">Jenis Kunjungan</div>
+            <strong id="registrationVisitType">-</strong>
+          </div>
+
+          <div>
+            <div class="muted">Penjamin</div>
+            <strong id="registrationPayer">-</strong>
+          </div>
+
+          <div>
+            <div class="muted">Status Registrasi</div>
+            <strong id="registrationStatus">-</strong>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- KELUHAN -->
+      <div
+        style="
+          border-top:1px solid #e5e7eb;
+          margin-top:20px;
+          padding-top:16px;
+        "
+      >
+
+        <div class="muted">
+          Keluhan Utama
+        </div>
+
+        <div
+          id="registrationComplaint"
+          style="margin-top:6px"
+        >
+          -
+        </div>
+
+      </div>
+
+
+      <!-- STATUS ENCOUNTER -->
+      <div
+        style="
+          border-top:1px solid #e5e7eb;
+          margin-top:20px;
+          padding-top:16px;
+        "
+      >
+
+        <h4 style="margin:0 0 12px">
+          Status Pelayanan Klinis
+        </h4>
+
+        <div
+          style="
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+            gap:12px;
+          "
+        >
+
+          <div>
+            <div class="muted">
+              Status Encounter
+            </div>
+
+            <strong id="encounterStatus">
+              Belum ada Encounter
+            </strong>
+          </div>
+
+          <div>
+            <div class="muted">
+              No. Encounter
+            </div>
+
+            <strong id="encounterNumber">
+              -
+            </strong>
+          </div>
+
+          <div>
+            <div class="muted">
+              Prioritas
+            </div>
+
+            <strong id="encounterPriority">
+              -
+            </strong>
+          </div>
+
+          <div>
+            <div class="muted">
+              Mulai Pelayanan
+            </div>
+
+            <strong id="encounterStartedAt">
+              -
+            </strong>
+          </div>
+
+        </div>
+
+
+        <!-- AKSI ENCOUNTER -->
+        <div
+          style="
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+            margin-top:16px;
+          "
+        >
+
+          <button
+            type="button"
+            id="startEncounterBtn"
+          >
+            Mulai Pelayanan
+          </button>
+
+          <button
+            type="button"
+            id="openRmeBtn"
+          >
+            Buka RME
+          </button>
+
+          <button
+            type="button"
+            id="reloadEncounterBtn"
+          >
+            Perbarui Status
+          </button>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- INFORMASI -->
+    <section
+      class="card"
+      id="pageMessage"
+      hidden
+    >
+
+      <div id="pageMessageText"></div>
+
+    </section>
+
+  </main>
+
+
+  <script src="../assets/js/pelayanan-klinis.js"></script>
+
+</body>
+</html>
