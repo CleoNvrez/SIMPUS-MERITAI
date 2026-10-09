@@ -3,13 +3,7 @@ let registrations = [];
 let selectedRegistration = null;
 let currentEncounter = null;
 
-
-/* =========================
-   INIT
-========================= */
-
 document.addEventListener("DOMContentLoaded", init);
-
 
 async function init() {
   currentProfile = await loadMyProfile();
@@ -17,16 +11,8 @@ async function init() {
   if (!currentProfile) return;
 
   bindEvents();
-
-  setDefaultSearch();
-
   await loadRegistrations();
 }
-
-
-/* =========================
-   EVENTS
-========================= */
 
 function bindEvents() {
   document
@@ -59,14 +45,19 @@ function bindEvents() {
 }
 
 
-/* =========================
-   REGISTRATION
-========================= */
+/* =========================================================
+   REGISTRASI
+========================================================= */
 
 async function loadRegistrations() {
   showRegistrationInfo("Memuat registrasi hari ini...");
 
-  const { data, error } = await sb
+  const today = getToday();
+
+  const {
+    data,
+    error
+  } = await sb
     .from("registrations")
     .select(`
       id,
@@ -80,11 +71,8 @@ async function loadRegistrations() {
       chief_complaint,
       status,
       patients (
-        id,
         medical_record_number,
-        full_name,
-        birth_date,
-        sex
+        full_name
       ),
       payers (
         id,
@@ -96,17 +84,22 @@ async function loadRegistrations() {
         name
       )
     `)
-    .eq("registration_date", getToday())
-    .order("registered_at", { ascending: true });
+    .eq("registration_date", today)
+    .neq("status", "CANCELLED")
+    .order("registered_at", {
+      ascending: true
+    });
 
   if (error) {
     console.error(error);
 
+    registrations = [];
+
     showRegistrationInfo(
-      "Gagal memuat registrasi: " + error.message
+      "Gagal memuat registrasi: " +
+      error.message
     );
 
-    registrations = [];
     renderRegistrations();
     return;
   }
@@ -125,101 +118,133 @@ async function loadRegistrations() {
 }
 
 
-/* =========================
-   UNIT FILTER
-========================= */
+/* =========================================================
+   FILTER UNIT
+========================================================= */
 
 function loadUnitFilter() {
-  const select = document.getElementById("serviceUnitFilter");
+  const select =
+    document.getElementById(
+      "serviceUnitFilter"
+    );
 
   if (!select) return;
 
-  const currentValue = select.value;
+  const currentValue =
+    select.value;
 
   const units = [];
 
-  registrations.forEach((item) => {
-    const unit = item.units;
+  registrations.forEach(
+    registration => {
+      const unit =
+        registration.units;
 
-    if (!unit) return;
+      if (!unit) return;
 
-    if (!units.some((x) => x.id === unit.id)) {
-      units.push(unit);
+      if (
+        !units.some(
+          existing =>
+            existing.id === unit.id
+        )
+      ) {
+        units.push(unit);
+      }
     }
-  });
+  );
 
   units.sort((a, b) =>
-    String(a.name).localeCompare(String(b.name), "id")
+    String(a.name).localeCompare(
+      String(b.name),
+      "id"
+    )
   );
 
   select.innerHTML = `
-    <option value="">Semua Unit</option>
-    ${units
-      .map(
-        (unit) => `
-          <option value="${escapeHtml(unit.id)}">
-            ${escapeHtml(unit.name)}
-          </option>
-        `
-      )
-      .join("")}
+    <option value="">
+      Semua Unit
+    </option>
+
+    ${units.map(unit => `
+      <option value="${escapeHtml(unit.id)}">
+        ${escapeHtml(unit.name)}
+      </option>
+    `).join("")}
   `;
 
-  if (units.some((unit) => unit.id === currentValue)) {
-    select.value = currentValue;
+  if (
+    units.some(
+      unit =>
+        unit.id === currentValue
+    )
+  ) {
+    select.value =
+      currentValue;
   }
 }
 
 
-/* =========================
-   RENDER REGISTRATIONS
-========================= */
+/* =========================================================
+   RENDER REGISTRASI
+========================================================= */
 
 function renderRegistrations() {
-  const container = document.getElementById(
-    "registrationContainer"
-  );
+  const container =
+    document.getElementById(
+      "registrationContainer"
+    );
 
   if (!container) return;
 
-  const searchInput =
-    document.getElementById("registrationSearch");
-
-  const unitFilter =
-    document.getElementById("serviceUnitFilter");
-
-  const search = String(
-    searchInput?.value || ""
-  )
-    .trim()
-    .toLowerCase();
-
-  const selectedUnit = unitFilter?.value || "";
-
-  const filtered = registrations.filter((item) => {
-    const patient = item.patients || {};
-    const unit = item.units || {};
-
-    const searchable = [
-      patient.full_name,
-      patient.medical_record_number,
-      item.registration_number,
-      item.chief_complaint,
-      unit.name
-    ]
-      .filter(Boolean)
-      .join(" ")
+  const search =
+    String(
+      document.getElementById(
+        "registrationSearch"
+      )?.value || ""
+    )
+      .trim()
       .toLowerCase();
 
-    const matchesSearch =
-      !search || searchable.includes(search);
+  const selectedUnit =
+    document.getElementById(
+      "serviceUnitFilter"
+    )?.value || "";
 
-    const matchesUnit =
-      !selectedUnit ||
-      unit.id === selectedUnit;
+  const filtered =
+    registrations.filter(
+      registration => {
 
-    return matchesSearch && matchesUnit;
-  });
+        const patient =
+          registration.patients || {};
+
+        const unit =
+          registration.units || {};
+
+        const searchable = [
+          patient.full_name,
+          patient.medical_record_number,
+          registration.registration_number,
+          registration.chief_complaint,
+          unit.name
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+
+        const matchesSearch =
+          !search ||
+          searchable.includes(search);
+
+        const matchesUnit =
+          !selectedUnit ||
+          unit.id === selectedUnit;
+
+        return (
+          matchesSearch &&
+          matchesUnit
+        );
+      }
+    );
 
   if (!filtered.length) {
     container.innerHTML = `
@@ -231,36 +256,49 @@ function renderRegistrations() {
     return;
   }
 
-  container.innerHTML = filtered
-    .map((item) => renderRegistrationCard(item))
-    .join("");
+  container.innerHTML =
+    filtered
+      .map(renderRegistrationCard)
+      .join("");
 
   container
-    .querySelectorAll("[data-registration-id]")
-    .forEach((button) => {
-      button.addEventListener("click", () => {
-        const id = button.dataset.registrationId;
-        selectRegistration(id);
-      });
+    .querySelectorAll(
+      "[data-registration-id]"
+    )
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+          selectRegistration(
+            button.dataset
+              .registrationId
+          );
+        }
+      );
+
     });
 }
 
 
-function renderRegistrationCard(item) {
-  const patient = item.patients || {};
-  const unit = item.units || {};
-  const payer = item.payers || {};
+function renderRegistrationCard(
+  registration
+) {
+  const patient =
+    registration.patients || {};
 
-  const statusLabel =
-    registrationStatusLabel(item.status);
+  const unit =
+    registration.units || {};
 
-  const visitLabel =
-    visitTypeLabel(item.visit_type);
+  const payer =
+    registration.payers || {};
 
   return `
     <button
       type="button"
-      data-registration-id="${escapeHtml(item.id)}"
+      data-registration-id="${escapeHtml(
+        registration.id
+      )}"
       style="
         text-align:left;
         width:100%;
@@ -272,17 +310,25 @@ function renderRegistrationCard(item) {
       "
     >
 
-      <strong style="display:block;font-size:1rem;">
-        ${escapeHtml(patient.full_name || "-")}
+      <strong
+        style="
+          display:block;
+          font-size:1rem;
+        "
+      >
+        ${escapeHtml(
+          patient.full_name || "-"
+        )}
       </strong>
 
       <div
         class="muted"
-        style="margin-top:6px;"
+        style="margin-top:6px"
       >
         No. RM:
         ${escapeHtml(
-          patient.medical_record_number || "-"
+          patient.medical_record_number ||
+          "-"
         )}
       </div>
 
@@ -296,33 +342,48 @@ function renderRegistrationCard(item) {
 
         <div>
           <strong>Registrasi:</strong>
-          ${escapeHtml(item.registration_number || "-")}
+          ${escapeHtml(
+            registration.registration_number ||
+            "-"
+          )}
         </div>
 
         <div>
           <strong>Unit:</strong>
-          ${escapeHtml(unit.name || "-")}
+          ${escapeHtml(
+            unit.name || "-"
+          )}
         </div>
 
         <div>
           <strong>Kunjungan:</strong>
-          ${escapeHtml(visitLabel)}
+          ${escapeHtml(
+            visitTypeLabel(
+              registration.visit_type
+            )
+          )}
         </div>
 
         <div>
           <strong>Penjamin:</strong>
-          ${escapeHtml(payer.name || "-")}
+          ${escapeHtml(
+            payer.name || "-"
+          )}
         </div>
 
         <div>
           <strong>Status:</strong>
-          ${escapeHtml(statusLabel)}
+          ${escapeHtml(
+            registrationStatusLabel(
+              registration.status
+            )
+          )}
         </div>
 
       </div>
 
       ${
-        item.chief_complaint
+        registration.chief_complaint
           ? `
             <div
               class="muted"
@@ -332,7 +393,9 @@ function renderRegistrationCard(item) {
                 padding-top:10px;
               "
             >
-              ${escapeHtml(item.chief_complaint)}
+              ${escapeHtml(
+                registration.chief_complaint
+              )}
             </div>
           `
           : ""
@@ -343,18 +406,21 @@ function renderRegistrationCard(item) {
 }
 
 
-/* =========================
-   SELECT PATIENT
-========================= */
+/* =========================================================
+   PILIH REGISTRASI
+========================================================= */
 
 async function selectRegistration(id) {
-  const registration = registrations.find(
-    (item) => item.id === id
-  );
+  const registration =
+    registrations.find(
+      item => item.id === id
+    );
 
   if (!registration) return;
 
-  selectedRegistration = registration;
+  selectedRegistration =
+    registration;
+
   currentEncounter = null;
 
   renderSelectedPatient();
@@ -366,10 +432,17 @@ async function selectRegistration(id) {
 function renderSelectedPatient() {
   if (!selectedRegistration) return;
 
-  const item = selectedRegistration;
-  const patient = item.patients || {};
-  const unit = item.units || {};
-  const payer = item.payers || {};
+  const registration =
+    selectedRegistration;
+
+  const patient =
+    registration.patients || {};
+
+  const unit =
+    registration.units || {};
+
+  const payer =
+    registration.payers || {};
 
   document.getElementById(
     "selectedPatientSection"
@@ -385,6 +458,11 @@ function renderSelectedPatient() {
     patient.medical_record_number || "-"
   );
 
+  /*
+   * Belum mengambil NIK/DOB/Jenis Kelamin
+   * karena kolom tersebut belum dipastikan
+   * dari schema patients.
+   */
   setText(
     "patientNik",
     "-"
@@ -392,22 +470,25 @@ function renderSelectedPatient() {
 
   setText(
     "patientSex",
-    sexLabel(patient.sex)
+    "-"
   );
 
   setText(
     "patientBirthDate",
-    formatDate(patient.birth_date)
+    "-"
   );
 
   setText(
     "registrationNumber",
-    item.registration_number || "-"
+    registration.registration_number ||
+    "-"
   );
 
   setText(
     "registrationDate",
-    formatDate(item.registration_date)
+    formatDate(
+      registration.registration_date
+    )
   );
 
   setText(
@@ -417,7 +498,9 @@ function renderSelectedPatient() {
 
   setText(
     "registrationVisitType",
-    visitTypeLabel(item.visit_type)
+    visitTypeLabel(
+      registration.visit_type
+    )
   );
 
   setText(
@@ -427,12 +510,14 @@ function renderSelectedPatient() {
 
   setText(
     "registrationStatus",
-    registrationStatusLabel(item.status)
+    registrationStatusLabel(
+      registration.status
+    )
   );
 
   setText(
     "registrationComplaint",
-    item.chief_complaint || "-"
+    registration.chief_complaint || "-"
   );
 
   resetEncounterDisplay();
@@ -451,16 +536,19 @@ function clearSelectedPatient() {
 }
 
 
-/* =========================
+/* =========================================================
    ENCOUNTER
-========================= */
+========================================================= */
 
 async function loadEncounter() {
   if (!selectedRegistration) return;
 
   resetEncounterDisplay();
 
-  const { data, error } = await sb
+  const {
+    data,
+    error
+  } = await sb
     .from("encounters")
     .select(`
       id,
@@ -489,13 +577,14 @@ async function loadEncounter() {
   if (error) {
     console.error(error);
 
-    setEncounterStatus(
+    setText(
+      "encounterStatus",
       "Gagal memuat Encounter"
     );
 
     showPageMessage(
       "Gagal memuat status Encounter: " +
-        error.message
+      error.message
     );
 
     return;
@@ -528,7 +617,9 @@ async function loadEncounter() {
 }
 
 
-function renderEncounter(encounter) {
+function renderEncounter(
+  encounter
+) {
   setText(
     "encounterStatus",
     encounterStatusLabel(
@@ -538,7 +629,8 @@ function renderEncounter(encounter) {
 
   setText(
     "encounterNumber",
-    encounter.encounter_number || "-"
+    encounter.encounter_number ||
+    "-"
   );
 
   setText(
@@ -555,20 +647,15 @@ function renderEncounter(encounter) {
     )
   );
 
-  const canOpenRme =
-    encounter.status !== "CANCELLED";
-
-  const canStart =
-    encounter.status === "DRAFT";
-
   toggleButton(
     "startEncounterBtn",
-    canStart
+    false
   );
 
   toggleButton(
     "openRmeBtn",
-    canOpenRme
+    encounter.status !==
+      "CANCELLED"
   );
 }
 
@@ -606,15 +693,16 @@ function resetEncounterDisplay() {
 }
 
 
-/* =========================
-   CREATE ENCOUNTER
-========================= */
+/* =========================================================
+   BUAT ENCOUNTER
+========================================================= */
 
 async function startEncounter() {
   if (!selectedRegistration) {
     showPageMessage(
       "Pilih pasien terlebih dahulu."
     );
+
     return;
   }
 
@@ -630,18 +718,17 @@ async function startEncounter() {
     showPageMessage(
       "Registrasi pasien tidak berada pada status REGISTERED."
     );
+
     return;
   }
-
-  const chiefComplaint =
-    selectedRegistration.chief_complaint ||
-    null;
 
   showPageMessage(
     "Membuat Encounter..."
   );
 
-  const { data, error } = await sb.rpc(
+  const {
+    error
+  } = await sb.rpc(
     "create_encounter",
     {
       p_registration_id:
@@ -654,7 +741,8 @@ async function startEncounter() {
         "ROUTINE",
 
       p_chief_complaint:
-        chiefComplaint
+        selectedRegistration
+          .chief_complaint || null
     }
   );
 
@@ -663,21 +751,11 @@ async function startEncounter() {
 
     showPageMessage(
       "Gagal membuat Encounter: " +
-        error.message
+      error.message
     );
 
     return;
   }
-
-  /*
-   * RPC dapat mengembalikan object,
-   * array satu baris, atau hanya id
-   * tergantung definisi fungsi.
-   *
-   * Karena itu setelah RPC berhasil,
-   * kita selalu mengambil Encounter
-   * kembali dari database.
-   */
 
   showPageMessage(
     "Encounter berhasil dibuat."
@@ -687,15 +765,16 @@ async function startEncounter() {
 }
 
 
-/* =========================
-   OPEN RME
-========================= */
+/* =========================================================
+   BUKA RME
+========================================================= */
 
 function openRme() {
   if (!selectedRegistration) {
     showPageMessage(
       "Pilih pasien terlebih dahulu."
     );
+
     return;
   }
 
@@ -703,6 +782,7 @@ function openRme() {
     showPageMessage(
       "Pasien belum memiliki Encounter."
     );
+
     return;
   }
 
@@ -713,13 +793,10 @@ function openRme() {
     showPageMessage(
       "Encounter sudah dibatalkan."
     );
+
     return;
   }
 
-  /*
-   * RME akan mengambil registration
-   * dan Encounter melalui parameter URL.
-   */
   const params =
     new URLSearchParams();
 
@@ -739,9 +816,9 @@ function openRme() {
 }
 
 
-/* =========================
-   PROFILE / AUTH
-========================= */
+/* =========================================================
+   AUTH / PROFILE
+========================================================= */
 
 async function loadMyProfile() {
   const session =
@@ -749,8 +826,13 @@ async function loadMyProfile() {
 
   if (!session) return null;
 
-  const { data, error } = await sb
-    .from("security_user_profiles")
+  const {
+    data,
+    error
+  } = await sb
+    .from(
+      "security_user_profiles"
+    )
     .select(`
       user_id,
       display_name,
@@ -775,7 +857,9 @@ async function loadMyProfile() {
     return null;
   }
 
-  if (data.status !== "ACTIVE") {
+  if (
+    data.status !== "ACTIVE"
+  ) {
     await sb.auth.signOut();
 
     window.location.href =
@@ -791,9 +875,9 @@ async function loadMyProfile() {
 }
 
 
-/* =========================
+/* =========================================================
    HELPERS
-========================= */
+========================================================= */
 
 function getToday() {
   const now = new Date();
@@ -815,18 +899,6 @@ function getToday() {
 }
 
 
-function setDefaultSearch() {
-  const search =
-    document.getElementById(
-      "registrationSearch"
-    );
-
-  if (search) {
-    search.value = "";
-  }
-}
-
-
 function setText(id, value) {
   const element =
     document.getElementById(id);
@@ -838,7 +910,10 @@ function setText(id, value) {
 }
 
 
-function toggleButton(id, visible) {
+function toggleButton(
+  id,
+  visible
+) {
   const element =
     document.getElementById(id);
 
@@ -848,7 +923,9 @@ function toggleButton(id, visible) {
 }
 
 
-function showRegistrationInfo(message) {
+function showRegistrationInfo(
+  message
+) {
   const element =
     document.getElementById(
       "registrationInfo"
@@ -861,15 +938,9 @@ function showRegistrationInfo(message) {
 }
 
 
-function setEncounterStatus(message) {
-  setText(
-    "encounterStatus",
-    message
-  );
-}
-
-
-function showPageMessage(message) {
+function showPageMessage(
+  message
+) {
   const section =
     document.getElementById(
       "pageMessage"
@@ -952,22 +1023,30 @@ function formatDateTime(value) {
 }
 
 
-/* =========================
-   LABEL HELPERS
-========================= */
+/* =========================================================
+   LABEL
+========================================================= */
 
-function registrationStatusLabel(status) {
+function registrationStatusLabel(
+  status
+) {
   const labels = {
     REGISTERED: "Terdaftar",
     CANCELLED: "Dibatalkan",
     COMPLETED: "Selesai"
   };
 
-  return labels[status] || status || "-";
+  return (
+    labels[status] ||
+    status ||
+    "-"
+  );
 }
 
 
-function encounterStatusLabel(status) {
+function encounterStatusLabel(
+  status
+) {
   const labels = {
     DRAFT: "Draft",
     IN_PROGRESS: "Sedang Dilayani",
@@ -976,20 +1055,28 @@ function encounterStatusLabel(status) {
     CANCELLED: "Dibatalkan"
   };
 
-  return labels[status] || status || "-";
+  return (
+    labels[status] ||
+    status ||
+    "-"
+  );
 }
 
 
-function encounterPriorityLabel(priority) {
+function encounterPriorityLabel(
+  priority
+) {
   const labels = {
     ROUTINE: "Rutin",
     URGENT: "Mendesak",
     EMERGENCY: "Darurat"
   };
 
-  return labels[priority] ||
+  return (
+    labels[priority] ||
     priority ||
-    "-";
+    "-"
+  );
 }
 
 
@@ -1002,15 +1089,9 @@ function visitTypeLabel(type) {
     OTHER: "Lainnya"
   };
 
-  return labels[type] || type || "-";
-}
-
-
-function sexLabel(sex) {
-  const labels = {
-    MALE: "Laki-laki",
-    FEMALE: "Perempuan"
-  };
-
-  return labels[sex] || sex || "-";
+  return (
+    labels[type] ||
+    type ||
+    "-"
+  );
 }
