@@ -19,8 +19,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     currentProfile = profileResult.profile;
 
     resetFacilityForm();
+    resetActivityForm();
 
     await loadFacilities();
+    await loadActivities();
 });
 
 
@@ -56,6 +58,28 @@ function bindEvents() {
     if (cancelButton) {
         cancelButton.addEventListener("click", () => {
             resetFacilityForm();
+        });
+    }
+
+    const activityForm = document.getElementById("networkActivityForm");
+    if (activityForm) {
+        activityForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            await saveActivity();
+        });
+    }
+
+    const reloadActivitiesButton = document.getElementById("reloadActivitiesBtn");
+    if (reloadActivitiesButton) {
+        reloadActivitiesButton.addEventListener("click", async () => {
+            await loadActivities();
+        });
+    }
+
+    const cancelActivityButton = document.getElementById("cancelActivityEditBtn");
+    if (cancelActivityButton) {
+        cancelActivityButton.addEventListener("click", () => {
+            resetActivityForm();
         });
     }
 }
@@ -772,4 +796,189 @@ function setFacilityInfo(message) {
 
     element.textContent =
         message || "";
+}
+
+
+// =========================================================
+// AKTIVITAS JEJARING
+// =========================================================
+
+let currentActivities = [];
+let editingActivityId = null;
+
+function getLocalDateString() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+}
+
+function loadActivityFacilityOptions() {
+    const select = document.getElementById("activityFacilityId");
+    if (!select) return;
+    const activeFacilities = currentFacilities.filter(item => item.is_active);
+    select.innerHTML = `<option value="">Pilih fasilitas...</option>${activeFacilities.map(facility => `<option value="${escapeHtml(facility.id)}">${escapeHtml(facility.code)} — ${escapeHtml(facility.name)}</option>`).join("")}`;
+}
+
+async function loadActivities() {
+    const info = document.getElementById("activityTableInfo");
+    if (info) info.textContent = "Memuat data aktivitas...";
+
+    const { data, error } = await sb
+        .from("network_activity_records")
+        .select(`
+            id, network_facility_id, activity_date, activity_type, activity_name,
+            location, target_group, target_count, participant_count, status,
+            result_summary, notes, recorded_by, created_by, updated_by,
+            created_at, updated_at,
+            network_facilities ( id, code, name, facility_type, is_active )
+        `)
+        .order("activity_date", { ascending: false })
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        console.error(error);
+        currentActivities = [];
+        renderActivities([]);
+        if (info) info.textContent = "Gagal memuat aktivitas: " + error.message;
+        return;
+    }
+
+    currentActivities = data || [];
+    renderActivities(currentActivities);
+    loadActivityFacilityOptions();
+    if (info) info.textContent = currentActivities.length ? `${currentActivities.length} aktivitas ditemukan.` : "Belum ada aktivitas jejaring.";
+}
+
+async function saveActivity() {
+    if (!currentProfile) {
+        setActivityInfo("Profil pengguna belum tersedia.", true);
+        return;
+    }
+
+    const facilityId = document.getElementById("activityFacilityId").value;
+    const activityDate = document.getElementById("activityDate").value;
+    const activityType = document.getElementById("activityType").value.trim();
+    const activityName = document.getElementById("activityName").value.trim();
+    const location = document.getElementById("activityLocation").value.trim();
+    const targetGroup = document.getElementById("activityTargetGroup").value.trim();
+    const targetCountRaw = document.getElementById("activityTargetCount").value;
+    const participantCountRaw = document.getElementById("activityParticipantCount").value;
+    const status = document.getElementById("activityStatus").value;
+    const resultSummary = document.getElementById("activityResultSummary").value.trim();
+    const notes = document.getElementById("activityNotes").value.trim();
+
+    if (!facilityId) return setActivityInfo("Fasilitas wajib dipilih.", true);
+    if (!activityDate) return setActivityInfo("Tanggal aktivitas wajib diisi.", true);
+    if (!activityType) return setActivityInfo("Jenis aktivitas wajib diisi.", true);
+    if (!activityName) return setActivityInfo("Nama aktivitas wajib diisi.", true);
+
+    const targetCount = targetCountRaw === "" ? null : Number(targetCountRaw);
+    const participantCount = participantCountRaw === "" ? null : Number(participantCountRaw);
+
+    if (targetCount !== null && (!Number.isInteger(targetCount) || targetCount < 0)) return setActivityInfo("Jumlah sasaran harus bilangan bulat >= 0.", true);
+    if (participantCount !== null && (!Number.isInteger(participantCount) || participantCount < 0)) return setActivityInfo("Jumlah peserta harus bilangan bulat >= 0.", true);
+
+    const payload = {
+        network_facility_id: facilityId,
+        activity_date: activityDate,
+        activity_type: activityType,
+        activity_name: activityName,
+        location: location || null,
+        target_group: targetGroup || null,
+        target_count: targetCount,
+        participant_count: participantCount,
+        status,
+        result_summary: resultSummary || null,
+        notes: notes || null
+    };
+
+    let error = null;
+    if (editingActivityId) {
+        const result = await sb.from("network_activity_records").update({ ...payload, updated_by: currentProfile.user_id }).eq("id", editingActivityId);
+        error = result.error;
+    } else {
+        const result = await sb.from("network_activity_records").insert({ ...payload, recorded_by: currentProfile.user_id, created_by: currentProfile.user_id, updated_by: currentProfile.user_id });
+        error = result.error;
+    }
+
+    if (error) {
+        console.error(error);
+        setActivityInfo("Gagal menyimpan aktivitas: " + error.message, true);
+        return;
+    }
+
+    setActivityInfo(editingActivityId ? "Aktivitas berhasil diperbarui." : "Aktivitas berhasil ditambahkan.");
+    resetActivityForm(false);
+    await loadActivities();
+}
+
+function editActivity(id) {
+    const activity = currentActivities.find(item => item.id === id);
+    if (!activity) return setActivityInfo("Data aktivitas tidak ditemukan.", true);
+
+    editingActivityId = activity.id;
+    document.getElementById("activityId").value = activity.id;
+    document.getElementById("activityFacilityId").value = activity.network_facility_id || "";
+    document.getElementById("activityDate").value = activity.activity_date || "";
+    document.getElementById("activityType").value = activity.activity_type || "";
+    document.getElementById("activityName").value = activity.activity_name || "";
+    document.getElementById("activityLocation").value = activity.location || "";
+    document.getElementById("activityTargetGroup").value = activity.target_group || "";
+    document.getElementById("activityTargetCount").value = activity.target_count ?? "";
+    document.getElementById("activityParticipantCount").value = activity.participant_count ?? "";
+    document.getElementById("activityStatus").value = activity.status || "COMPLETED";
+    document.getElementById("activityResultSummary").value = activity.result_summary || "";
+    document.getElementById("activityNotes").value = activity.notes || "";
+    document.getElementById("activityFormTitle").textContent = "Edit Aktivitas Jejaring";
+    document.getElementById("saveActivityBtn").textContent = "Update Aktivitas";
+    setActivityInfo("Mode edit aktivitas aktif.");
+}
+
+function resetActivityForm(clearMessage = true) {
+    editingActivityId = null;
+    const form = document.getElementById("networkActivityForm");
+    if (form) form.reset();
+    const date = document.getElementById("activityDate");
+    const status = document.getElementById("activityStatus");
+    const id = document.getElementById("activityId");
+    if (id) id.value = "";
+    if (date) date.value = getLocalDateString();
+    if (status) status.value = "COMPLETED";
+    loadActivityFacilityOptions();
+    document.getElementById("activityFormTitle").textContent = "Tambah Aktivitas Jejaring";
+    document.getElementById("saveActivityBtn").textContent = "Simpan Aktivitas";
+    if (clearMessage) setActivityInfo("");
+}
+
+function renderActivities(activities) {
+    const tbody = document.getElementById("activityTableBody");
+    if (!tbody) return;
+    if (!activities || activities.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="padding:16px;text-align:center;">Belum ada data aktivitas.</td></tr>`;
+        return;
+    }
+    tbody.innerHTML = activities.map(activity => {
+        const facility = activity.network_facilities || {};
+        const facilityLabel = `${facility.code || "-"} — ${facility.name || "-"}`;
+        return `<tr>
+            <td style="padding:10px;border-bottom:1px solid #e5e7eb">${escapeHtml(activity.activity_date || "-")}</td>
+            <td style="padding:10px;border-bottom:1px solid #e5e7eb">${escapeHtml(facilityLabel)}</td>
+            <td style="padding:10px;border-bottom:1px solid #e5e7eb">${escapeHtml(activity.activity_type || "-")}</td>
+            <td style="padding:10px;border-bottom:1px solid #e5e7eb">${escapeHtml(activity.activity_name || "-")}</td>
+            <td style="padding:10px;border-bottom:1px solid #e5e7eb">${escapeHtml(activity.participant_count ?? "-")}</td>
+            <td style="padding:10px;border-bottom:1px solid #e5e7eb">${escapeHtml(getActivityStatusLabel(activity.status))}</td>
+            <td style="padding:10px;border-bottom:1px solid #e5e7eb"><button type="button" onclick="editActivity('${escapeJs(activity.id)}')">Edit</button></td>
+        </tr>`;
+    }).join("");
+}
+
+function getActivityStatusLabel(status) {
+    const labels = { PLANNED: "Direncanakan", ONGOING: "Berlangsung", COMPLETED: "Selesai", CANCELLED: "Dibatalkan" };
+    return labels[status] || status || "-";
+}
+
+function setActivityInfo(message, isError = false) {
+    const element = document.getElementById("activityInfo");
+    if (!element) return;
+    element.textContent = message || "";
+    element.style.color = isError ? "#b91c1c" : "";
 }
