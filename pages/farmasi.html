@@ -6,7 +6,6 @@
   <title>Farmasi | Puskesmas Meritai</title>
 
   <link rel="stylesheet" href="../assets/css/app.css">
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../assets/js/config.js"></script>
   <script src="../assets/js/auth.js"></script>
@@ -15,82 +14,52 @@
 <body>
   <header>
     <strong>Puskesmas Meritai — Farmasi</strong>
-    <button id="logoutButton"
-      type="button"
-      style="width:auto;float:right;margin:0">
-      Keluar
-    </button>
+    <button id="logoutButton" type="button"
+      style="width:auto;float:right;margin:0">Keluar</button>
   </header>
 
   <main>
     <section class="card">
       <h2>Modul Farmasi</h2>
-      <p class="muted">
-        Katalog obat dan pemantauan resep. Akses mengikuti autentikasi
-        serta kebijakan keamanan database.
-      </p>
+      <p class="muted">Katalog obat, resep, dan detail obat resep.</p>
       <p id="profileInfo" class="muted">Memeriksa sesi pengguna...</p>
       <p id="pageMessage" role="status" aria-live="polite"></p>
     </section>
 
     <section class="card">
       <h3>Katalog Obat</h3>
-      <p class="muted">
-        Pencarian berdasarkan kode, nama, nama generik, atau bentuk sediaan.
-        Modul ini belum mengelola stok persediaan.
-      </p>
-
       <label for="medicineSearch">Cari obat</label>
-      <input id="medicineSearch"
-        type="search"
-        placeholder="Masukkan kode atau nama obat">
+      <input id="medicineSearch" type="search"
+        placeholder="Kode, nama, atau nama generik">
 
-      <div id="medicineList" class="grid" aria-live="polite">
+      <div id="medicineList" class="grid">
         <p class="muted">Memuat katalog obat...</p>
       </div>
 
       <div id="medicineFormSection" hidden>
         <hr>
-        <h4>Tambah Obat ke Katalog</h4>
-
+        <h4>Tambah Obat</h4>
         <form id="medicineForm">
           <label for="medicineCode">Kode obat *</label>
-          <input id="medicineCode"
-            name="code"
-            maxlength="50"
-            required>
+          <input id="medicineCode" maxlength="50" required>
 
           <label for="medicineName">Nama obat *</label>
-          <input id="medicineName"
-            name="name"
-            maxlength="200"
-            required>
+          <input id="medicineName" maxlength="200" required>
 
           <label for="medicineGeneric">Nama generik</label>
-          <input id="medicineGeneric"
-            name="generic_name"
-            maxlength="200">
+          <input id="medicineGeneric" maxlength="200">
 
           <label for="medicineFormType">Bentuk sediaan</label>
-          <input id="medicineFormType"
-            name="dosage_form"
-            maxlength="100"
-            placeholder="Contoh: tablet">
+          <input id="medicineFormType" maxlength="100">
 
-          <label for="medicineStrength">Kekuatan sediaan</label>
-          <input id="medicineStrength"
-            name="strength"
-            maxlength="100"
-            placeholder="Contoh: 500 mg">
+          <label for="medicineStrength">Kekuatan</label>
+          <input id="medicineStrength" maxlength="100">
 
           <label for="medicineUnit">Satuan</label>
-          <input id="medicineUnit"
-            name="unit"
-            maxlength="50"
-            placeholder="Contoh: tablet">
+          <input id="medicineUnit" maxlength="50">
 
           <label for="medicineType">Jenis obat *</label>
-          <select id="medicineType" name="medicine_type" required>
+          <select id="medicineType" required>
             <option value="MEDICINE">Obat</option>
             <option value="VITAMIN">Vitamin</option>
             <option value="SUPPLEMENT">Suplemen</option>
@@ -98,46 +67,108 @@
           </select>
 
           <label for="medicineManufacturer">Produsen</label>
-          <input id="medicineManufacturer"
-            name="manufacturer"
-            maxlength="200">
+          <input id="medicineManufacturer" maxlength="200">
 
           <label for="medicineRegistration">Nomor registrasi</label>
-          <input id="medicineRegistration"
-            name="registration_number"
-            maxlength="100">
+          <input id="medicineRegistration" maxlength="100">
 
           <label for="medicineNotes">Catatan</label>
-          <textarea id="medicineNotes"
-            name="notes"
-            rows="3"
-            style="width:100%;padding:11px;margin-top:8px;
-                   border:1px solid #d1d5db;border-radius:8px"></textarea>
+          <textarea id="medicineNotes" rows="3"
+            style="width:100%;padding:11px;margin-top:8px"></textarea>
 
-          <button id="saveMedicineButton" type="submit">
-            Simpan Obat
-          </button>
-          <p id="medicineFormMessage"
-            role="status"
-            aria-live="polite"></p>
+          <button id="saveMedicineButton" type="submit">Simpan Obat</button>
+          <p id="medicineFormMessage" role="status" aria-live="polite"></p>
         </form>
       </div>
     </section>
 
     <section class="card">
-      <h3>Daftar Resep</h3>
+      <h3>Buat Resep</h3>
       <p class="muted">
-        Menampilkan resep yang dapat diakses oleh akun Anda.
-        Pembuatan dan perubahan status resep belum diaktifkan pada tahap ini.
+        Pilih encounter yang dapat diakses oleh akun Anda. Nomor resep
+        dibuat oleh aplikasi; resep baru berstatus DRAFT.
       </p>
 
-      <label for="prescriptionSearch">Cari nomor resep atau status</label>
-      <input id="prescriptionSearch"
-        type="search"
-        placeholder="Contoh: RX-... atau VERIFIED">
+      <div id="prescriptionFormSection" hidden>
+        <form id="prescriptionForm">
+          <label for="encounterSelect">Encounter *</label>
+          <select id="encounterSelect" required>
+            <option value="">Memuat encounter...</option>
+          </select>
+          <p id="encounterMessage" class="muted"></p>
 
-      <div id="prescriptionList" aria-live="polite">
+          <label for="prescriptionNotes">Catatan resep</label>
+          <textarea id="prescriptionNotes" rows="3"
+            style="width:100%;padding:11px;margin-top:8px"></textarea>
+
+          <button id="createPrescriptionButton" type="submit">
+            Buat Resep DRAFT
+          </button>
+          <p id="prescriptionFormMessage" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+      <p id="prescriptionAccessMessage" class="muted"></p>
+    </section>
+
+    <section class="card">
+      <h3>Daftar Resep</h3>
+      <label for="prescriptionSearch">Cari nomor resep atau status</label>
+      <input id="prescriptionSearch" type="search"
+        placeholder="Masukkan nomor resep atau status">
+
+      <div id="prescriptionList">
         <p class="muted">Memuat daftar resep...</p>
+      </div>
+    </section>
+
+    <section class="card" id="prescriptionItemsSection">
+      <h3>Detail Obat Resep</h3>
+      <p id="selectedPrescriptionMessage" class="muted">
+        Pilih resep berstatus DRAFT dari daftar resep untuk melihat atau
+        menambahkan detail obat.
+      </p>
+
+      <div id="prescriptionItemFormSection" hidden>
+        <form id="prescriptionItemForm">
+          <label for="itemMedicine">Obat *</label>
+          <select id="itemMedicine" required>
+            <option value="">Pilih obat</option>
+          </select>
+
+          <label for="itemDose">Dosis *</label>
+          <input id="itemDose" maxlength="100"
+            placeholder="Contoh: 1 tablet" required>
+
+          <label for="itemFrequency">Frekuensi *</label>
+          <input id="itemFrequency" maxlength="100"
+            placeholder="Contoh: 3 kali sehari" required>
+
+          <label for="itemDuration">Durasi (hari)</label>
+          <input id="itemDuration" type="number" min="1" step="1">
+
+          <label for="itemQuantity">Jumlah *</label>
+          <input id="itemQuantity" type="number"
+            min="0.001" step="0.001" required>
+
+          <label for="itemRoute">Rute pemberian</label>
+          <input id="itemRoute" maxlength="100"
+            placeholder="Contoh: oral">
+
+          <label for="itemInstructions">Instruksi penggunaan</label>
+          <textarea id="itemInstructions" rows="2"></textarea>
+
+          <label for="itemNotes">Catatan item</label>
+          <textarea id="itemNotes" rows="2"></textarea>
+
+          <button id="savePrescriptionItemButton" type="submit">
+            Tambahkan Obat ke Resep
+          </button>
+          <p id="prescriptionItemMessage" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+
+      <div id="prescriptionItemList">
+        <p class="muted">Belum ada resep yang dipilih.</p>
       </div>
     </section>
   </main>
