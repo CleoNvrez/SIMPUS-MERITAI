@@ -1,1 +1,145 @@
-<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Farmasi | Puskesmas Meritai</title><link rel="stylesheet" href="../assets/css/app.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../assets/js/config.js"></script><script src="../assets/js/auth.js"></script></head><body><header><strong>Puskesmas Meritai</strong><button style="max-width:120px;float:right;margin:0" onclick="logout()">Keluar</button></header><main><div class="card"><h2>Farmasi</h2><p class="muted">Modul Farmasi — Fresh Start V2.</p></div></main></body></html>
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Farmasi | Puskesmas Meritai</title>
+
+  <link rel="stylesheet" href="../assets/css/app.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../assets/js/config.js"></script>
+  <script src="../assets/js/auth.js"></script>
+  <script src="../assets/js/farmasi.js" defer></script>
+</head>
+<body>
+  <header>
+    <strong>Puskesmas Meritai — Farmasi</strong>
+    <button id="logoutButton"
+      type="button"
+      style="width:auto;float:right;margin:0">
+      Keluar
+    </button>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Modul Farmasi</h2>
+      <p class="muted">
+        Katalog obat dan pemantauan resep. Akses mengikuti autentikasi
+        serta kebijakan keamanan database.
+      </p>
+      <p id="profileInfo" class="muted">Memeriksa sesi pengguna...</p>
+      <p id="pageMessage" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="card">
+      <h3>Katalog Obat</h3>
+      <p class="muted">
+        Pencarian berdasarkan kode, nama, nama generik, atau bentuk sediaan.
+        Modul ini belum mengelola stok persediaan.
+      </p>
+
+      <label for="medicineSearch">Cari obat</label>
+      <input id="medicineSearch"
+        type="search"
+        placeholder="Masukkan kode atau nama obat">
+
+      <div id="medicineList" class="grid" aria-live="polite">
+        <p class="muted">Memuat katalog obat...</p>
+      </div>
+
+      <div id="medicineFormSection" hidden>
+        <hr>
+        <h4>Tambah Obat ke Katalog</h4>
+
+        <form id="medicineForm">
+          <label for="medicineCode">Kode obat *</label>
+          <input id="medicineCode"
+            name="code"
+            maxlength="50"
+            required>
+
+          <label for="medicineName">Nama obat *</label>
+          <input id="medicineName"
+            name="name"
+            maxlength="200"
+            required>
+
+          <label for="medicineGeneric">Nama generik</label>
+          <input id="medicineGeneric"
+            name="generic_name"
+            maxlength="200">
+
+          <label for="medicineFormType">Bentuk sediaan</label>
+          <input id="medicineFormType"
+            name="dosage_form"
+            maxlength="100"
+            placeholder="Contoh: tablet">
+
+          <label for="medicineStrength">Kekuatan sediaan</label>
+          <input id="medicineStrength"
+            name="strength"
+            maxlength="100"
+            placeholder="Contoh: 500 mg">
+
+          <label for="medicineUnit">Satuan</label>
+          <input id="medicineUnit"
+            name="unit"
+            maxlength="50"
+            placeholder="Contoh: tablet">
+
+          <label for="medicineType">Jenis obat *</label>
+          <select id="medicineType" name="medicine_type" required>
+            <option value="MEDICINE">Obat</option>
+            <option value="VITAMIN">Vitamin</option>
+            <option value="SUPPLEMENT">Suplemen</option>
+            <option value="OTHER">Lainnya</option>
+          </select>
+
+          <label for="medicineManufacturer">Produsen</label>
+          <input id="medicineManufacturer"
+            name="manufacturer"
+            maxlength="200">
+
+          <label for="medicineRegistration">Nomor registrasi</label>
+          <input id="medicineRegistration"
+            name="registration_number"
+            maxlength="100">
+
+          <label for="medicineNotes">Catatan</label>
+          <textarea id="medicineNotes"
+            name="notes"
+            rows="3"
+            style="width:100%;padding:11px;margin-top:8px;
+                   border:1px solid #d1d5db;border-radius:8px"></textarea>
+
+          <button id="saveMedicineButton" type="submit">
+            Simpan Obat
+          </button>
+          <p id="medicineFormMessage"
+            role="status"
+            aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Daftar Resep</h3>
+      <p class="muted">
+        Menampilkan resep yang dapat diakses oleh akun Anda.
+        Pembuatan dan perubahan status resep belum diaktifkan pada tahap ini.
+      </p>
+
+      <label for="prescriptionSearch">Cari nomor resep atau status</label>
+      <input id="prescriptionSearch"
+        type="search"
+        placeholder="Contoh: RX-... atau VERIFIED">
+
+      <div id="prescriptionList" aria-live="polite">
+        <p class="muted">Memuat daftar resep...</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
